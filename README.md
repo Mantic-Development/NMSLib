@@ -20,3 +20,5 @@ Dependency:
     <scope>provided</scope>
 </dependency>
   ```
+  
+  Use WorldGuardIntegrationLib#init(plugin) if you are shading the plugin, otherwise use WorldGuardIntegrationLib.getLib()
