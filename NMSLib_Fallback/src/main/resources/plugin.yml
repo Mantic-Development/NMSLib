@@ -1,0 +1,4 @@
+name: NMSLib_Fallback
+version: '${project.version}'
+main: NMSLib_Fallback
+api-version: 1.19

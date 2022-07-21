@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>me.fullpage</groupId>
+    <artifactId>NMSLib_Parent</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+    <name>NMSLib_Parent</name>
+
+    <properties>
+        <revision>1.0</revision>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <modules>
+        <module>NMSLib_API</module>
+        <module>NMSLib_Fallback</module>
+        <module>NMSLib_V1_8_R3</module>
+        <module>NMSLib_V1_12_R1</module>
+        <module>NMSLib_V1_13_R2</module>
+        <module>NMSLib_V1_14_R1</module>
+        <module>NMSLib_V1_16_R3</module>
+        <module>NMSLib_V1_17_R1</module>
+        <module>NMSLib_V1_18_R1</module>
+        <module>NMSLib_V1_18_R2</module>
+        <module>NMSLib_V1_19_R1</module>
+        <module>NMSLib_Plugin</module>
+    </modules>
+
+
+    <build>
+       <!-- <directory>${jar.area}</directory>-->
+        <defaultGoal>clean package install</defaultGoal>
+        <finalName>${project.name}</finalName>
+        <sourceDirectory>src/main/java</sourceDirectory>
+     <!--   <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>-->
+    </build>
+
+</project>
