@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <revision>1.0-SNAPSHOT</revision>
+        <revision>1.0</revision>
     </properties>
     <version>${revision}</version>
     <modules>
