@@ -1,4 +1,4 @@
-package me.fullpage.nmslib_plugin;
+package me.fullpage.nmslib.plugin;
 
 import me.fullpage.nmslib.NMSHandler;
 import me.fullpage.nmslib_fallback.NMSLib_Fallback;
