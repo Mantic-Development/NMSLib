@@ -1,5 +1,6 @@
 package me.fullpage.nmslib_fallback;
 
+import me.fullpage.manticlib.utils.ReflectionUtils;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.sql.Ref;
 import java.util.Objects;
 
 public final class NMSLib_Fallback implements NMSHandler {
@@ -69,72 +71,17 @@ public final class NMSLib_Fallback implements NMSHandler {
 
     }
 
-    private static final String NMS_VERSION;
-    private static final int VER;
-    private static final MethodHandle PLAYER_CONNECTION;
-    private static final MethodHandle GET_HANDLE;
-
-    public static final Class<?> CRAFT_PLAYER;
-    private static final String CRAFTBUKKIT, NMS;
-
-    static {
-        NMS_VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
-        VER = Integer.parseInt(NMS_VERSION.substring(1).split("_")[1]);
-        CRAFTBUKKIT = "org.bukkit.craftbukkit." + NMS_VERSION + '.';
-        NMS = 17 >= VER ? "net.minecraft." : "net.minecraft.server." + NMS_VERSION + '.';
-        Class<?> entityPlayer = getNMSClass("server.level", "EntityPlayer");
-        CRAFT_PLAYER = getCraftClass("entity.CraftPlayer");
-        Class<?> playerConnection = getNMSClass("server.network", "PlayerConnection");
-
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
-        MethodHandle sendPacket = null;
-        MethodHandle getHandle = null;
-        MethodHandle connection = null;
-        try {
-            connection = lookup.findGetter(entityPlayer, 17 >= VER ? "b" : "playerConnection", playerConnection);
-            getHandle = lookup.findVirtual(CRAFT_PLAYER, "getHandle", MethodType.methodType(entityPlayer));
-            sendPacket = lookup.findVirtual(playerConnection, "sendPacket", MethodType.methodType(void.class, getNMSClass("network.protocol", "Packet")));
-        } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
-        }
-
-        PLAYER_CONNECTION = connection;
-        GET_HANDLE = getHandle;
-    }
 
     private static Class<?> getCraftClass(String name) {
-        try {
-            return Class.forName(CRAFTBUKKIT + name);
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
-        }
+        return ReflectionUtils.getCraftClass(name);
     }
 
     private static Class<?> getNMSClass(String newPackage, String name) {
-        if (17 >= VER) name = newPackage + '.' + name;
-        return getNMSClass(name);
+        return getNMSClass(newPackage, name);
     }
-
-    private static Class<?> getNMSClass(String name) {
-        try {
-            return Class.forName(NMS + name);
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
 
     private Object getConnection(Player player) {
-        Objects.requireNonNull(player, "Cannot get connection of null player");
-        try {
-            Object handle = GET_HANDLE.invoke(player);
-            return PLAYER_CONNECTION.invoke(handle);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            return null;
-        }
+     return ReflectionUtils.getConnection(player);
     }
 
     @Override
@@ -142,6 +89,9 @@ public final class NMSLib_Fallback implements NMSHandler {
         if (!player.isOnline()) {
             return; // Player may have logged out
         }
+
+        String NMS_VERSION = ReflectionUtils.VERSION;
+        int VER = ReflectionUtils.VER;
 
         try {
             Object connection = this.getConnection(player);

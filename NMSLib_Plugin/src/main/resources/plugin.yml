@@ -1,4 +1,4 @@
 name: NMSLib_Plugin
 version: '${project.version}'
-main: me.fullpage.nmslib_plugin.NMSLib_Plugin
+main: me.fullpage.nmslib.plugin.NMSLib_Plugin
 api-version: 1.13
