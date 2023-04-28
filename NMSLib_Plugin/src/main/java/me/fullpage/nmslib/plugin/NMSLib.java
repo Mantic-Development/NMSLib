@@ -56,6 +56,7 @@ public class NMSLib {
                 break;
             case "v1_19_R3":
                 nmsHandler = new NMSLib_V1_19_R3();
+                break;
             default:
                 plugin.getLogger().info("Cannot find NMS Support, fall backing to api methods. ");
                 nmsHandler = new NMSLib_Fallback();
