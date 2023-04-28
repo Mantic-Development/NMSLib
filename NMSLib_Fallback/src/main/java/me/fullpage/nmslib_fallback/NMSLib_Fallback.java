@@ -9,67 +9,18 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Ref;
 import java.util.Objects;
 
 public final class NMSLib_Fallback implements NMSHandler {
 
-    @Override
-    public void setBlock(Location location, Material material) {
-        location.getBlock().setType(material);
-    }
-
-    @Override
-    public void setBlock(Location location, Material material, boolean applyPhysics) {
-        this.setBlock(location.getBlock(), material, applyPhysics);
-
-    }
-
-    @Override
-    public void setBlock(Location location, Material material, int durability) {
-        this.setBlock(location.getBlock(), material, durability);
-
-    }
-
-    @Override
-    public void setBlock(Location location, Material material, int durability, boolean applyPhysics) {
-        this.setBlock(location.getBlock(), material, durability, applyPhysics);
-    }
-
-    @Override
-    public void setBlock(Block block, Material material) {
-        block.setType(material);
-
-    }
-
-    @Override
-    public void setBlock(Block block, Material material, boolean applyPhysics) {
-        block.setType(material, applyPhysics);
-    }
-
-    @Override
-    public void setBlock(Block block, Material material, int durability) {
-        block.setType(material);
-        block.setData((byte) durability, false);
-    }
-
-    @Override
-    public void setBlock(Block block, Material material, int durability, boolean applyPhysics) {
-        block.setType(material, applyPhysics);
-        block.setData((byte) durability, false);
-
-    }
-
-    @Override
-    public void setBlock(World world, int x, int y, int z, Material material, boolean applyPhysics) {
-        world.getBlockAt(x, y, z).setType(material, applyPhysics);
-
-    }
 
 
     private static Class<?> getCraftClass(String name) {
@@ -147,4 +98,5 @@ public final class NMSLib_Fallback implements NMSHandler {
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
     }
+
 }

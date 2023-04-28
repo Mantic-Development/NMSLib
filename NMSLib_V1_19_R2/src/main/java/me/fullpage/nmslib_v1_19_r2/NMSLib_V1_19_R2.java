@@ -7,6 +7,7 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.core.BlockPosition;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.projectile.EntityFishingHook;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,71 +18,6 @@ import org.bukkit.craftbukkit.v1_19_R2.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
 
 public final class NMSLib_V1_19_R2 implements NMSHandler {
-
-    @Override
-    public void setBlock(Location location, Material material) {
-        this.setBlock(location.getBlock(), material);
-
-    }
-
-    @Override
-    public void setBlock(Location location, Material material, boolean applyPhysics) {
-        this.setBlock(location.getBlock(), material, applyPhysics);
-    }
-
-    @Override
-    public void setBlock(Location location, Material material, int durability) {
-        this.setBlock(location.getBlock(), material, durability);
-
-    }
-
-    @Override
-    public void setBlock(Location location, Material material, int durability, boolean applyPhysics) {
-        this.setBlock(location.getBlock(), material, durability, applyPhysics);
-
-    }
-
-    @Override
-    public void setBlock(Block block, Material material) {
-        IBlockData iblockdata = this.iBlockDataFromMaterial(material);
-        BlockPosition blockPosition = this.getBlockPosition(block.getX(), block.getY(), block.getZ());
-        WorldServer nmsWorld = this.getWorld(block.getWorld());
-        nmsWorld.a(blockPosition, iblockdata, this.getApplyPhysicsId(true));
-
-    }
-
-    @Override
-    public void setBlock(Block block, Material material, boolean applyPhysics) {
-        IBlockData iblockdata = this.iBlockDataFromMaterial(material);
-        BlockPosition blockPosition = this.getBlockPosition(block.getX(), block.getY(), block.getZ());
-        WorldServer nmsWorld = this.getWorld(block.getWorld());
-        nmsWorld.a(blockPosition, iblockdata, this.getApplyPhysicsId(applyPhysics));
-
-    }
-
-    @Override
-    public void setBlock(Block block, Material material, int durability) {
-        BlockPosition blockPosition = this.getBlockPosition(block.getX(), block.getY(), block.getZ());
-        WorldServer nmsWorld = this.getWorld(block.getWorld());
-        nmsWorld.a(blockPosition, CraftMagicNumbers.getBlock(material, (byte) durability), this.getApplyPhysicsId(true));
-
-    }
-
-    @Override
-    public void setBlock(Block block, Material material, int durability, boolean applyPhysics) {
-        IBlockData iblockdata = CraftMagicNumbers.getBlock(material, (byte) durability);
-        BlockPosition blockPosition = this.getBlockPosition(block.getX(), block.getY(), block.getZ());
-        WorldServer nmsWorld = this.getWorld(block.getWorld());
-        nmsWorld.a(blockPosition, iblockdata, this.getApplyPhysicsId(applyPhysics));
-    }
-
-    @Override
-    public void setBlock(World world, int x, int y, int z, Material material, boolean applyPhysics) {
-        BlockPosition blockPosition = this.getBlockPosition(x, y, z);
-        WorldServer nmsWorld = this.getWorld(world);
-        nmsWorld.a(blockPosition, this.iBlockDataFromMaterial(material), this.getApplyPhysicsId(applyPhysics));
-
-    }
 
     @Override
     public void sendActionBar(Player player, String message) {
