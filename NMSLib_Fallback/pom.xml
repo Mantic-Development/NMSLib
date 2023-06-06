@@ -70,8 +70,8 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
-            <systemPath>${pom.basedir}/../libs/spigot-1.8.8-R0.1-SNAPSHOT-latest.jar</systemPath>
+            <version>1.13.2</version>
+            <systemPath>${pom.basedir}/../libs/spigot-1.13.2.jar</systemPath>
             <scope>system</scope>
         </dependency>
         <dependency>

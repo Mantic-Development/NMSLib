@@ -14,6 +14,7 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public final class NMSLib_V1_19_R1 implements NMSHandler {
 
@@ -25,6 +26,27 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
     @Override
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
+    }
+
+
+
+    @Override
+    public void sendTitle(Player player, String title, String subtitle) {
+        sendTitle(player, title, subtitle, 10, 20, 10);
+    }
+
+    @Override
+    public void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+    }
+
+    @Override
+    public void clearTitle(Player player) {
+        player.resetTitle();
+    }
+    @Override
+    public ItemStack getItemInMainHand(Player player) {
+        return player == null ? null : player.getInventory().getItemInMainHand();
     }
 
 }

@@ -3,18 +3,17 @@ package me.fullpage.nmslib_v1_14_r1;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_14_R1.BlockPosition;
-import net.minecraft.server.v1_14_R1.IBlockData;
-import net.minecraft.server.v1_14_R1.IChatBaseComponent;
-import net.minecraft.server.v1_14_R1.PacketPlayOutChat;
+import net.minecraft.server.v1_14_R1.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_14_R1.util.CraftChatMessage;
 import org.bukkit.craftbukkit.v1_14_R1.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public final class NMSLib_V1_14_R1 implements NMSHandler {
 
@@ -24,9 +23,31 @@ public final class NMSLib_V1_14_R1 implements NMSHandler {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }
 
+
+
+    @Override
+    public void sendTitle(Player player, String title, String subtitle) {
+        sendTitle(player, title, subtitle, 10, 20, 10);
+    }
+
+    @Override
+    public void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+    }
+
+    @Override
+    public void clearTitle(Player player) {
+        player.resetTitle();
+    }
+
     @Override
     public void sendJsonMessage(Player player, String json) {
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(json)));
+    }
+
+    @Override
+    public ItemStack getItemInMainHand(Player player) {
+        return player == null ? null : player.getInventory().getItemInMainHand();
     }
 
 }

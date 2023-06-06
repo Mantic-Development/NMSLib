@@ -4,18 +4,8 @@ import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.entity.projectile.EntityFishingHook;
-import net.minecraft.world.level.block.state.IBlockData;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R2.util.CraftMagicNumbers;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public final class NMSLib_V1_19_R2 implements NMSHandler {
 
@@ -29,21 +19,25 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
     }
 
-    private BlockPosition getBlockPosition(int x, int y, int z) {
-        return new BlockPosition(x, y, z);
+
+
+    @Override
+    public void sendTitle(Player player, String title, String subtitle) {
+        sendTitle(player, title, subtitle, 10, 20, 10);
     }
 
-    private int getApplyPhysicsId(boolean applyPhysics) {
-        return applyPhysics ? 3 : 2;
+    @Override
+    public void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
     }
 
-    private IBlockData iBlockDataFromMaterial(Material m) {
-        net.minecraft.world.level.block.Block nmsBlock = CraftMagicNumbers.getBlock(m);
-        return nmsBlock.n();
+    @Override
+    public void clearTitle(Player player) {
+        player.resetTitle();
     }
-
-    private WorldServer getWorld(World world) {
-        return ((CraftWorld) world).getHandle();
+    @Override
+    public ItemStack getItemInMainHand(Player player) {
+        return player == null ? null : player.getInventory().getItemInMainHand();
     }
 
 }

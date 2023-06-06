@@ -1,14 +1,14 @@
 package me.fullpage.nmslib.plugin;
 
+import me.fullpage.manticlib.command.ManticCommand;
 import me.fullpage.nmslib.NMSHandler;
-import net.minecraft.server.v1_8_R3.BlockPosition;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Banner;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,6 +19,7 @@ public final class Main extends JavaPlugin implements NMSHandler {
     @Override
     public void onEnable() {
         this.nmsHandler = NMSLib.init(this);
+        ManticCommand.register(new TestCmd());
     }
 
     @Override
@@ -27,8 +28,28 @@ public final class Main extends JavaPlugin implements NMSHandler {
     }
 
     @Override
+    public void sendTitle(Player player, String title, String subtitle) {
+        this.nmsHandler.sendTitle(player, title, subtitle);
+    }
+
+    @Override
+    public void sendTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        this.nmsHandler.sendTitle(player, title, subtitle, fadeIn, stay, fadeOut);
+    }
+
+    @Override
+    public void clearTitle(Player player) {
+        this.nmsHandler.clearTitle(player);
+    }
+
+    @Override
     public void sendJsonMessage(Player player, String json) {
         this.nmsHandler.sendJsonMessage(player, json);
+    }
+
+    @Override
+    public ItemStack getItemInMainHand(Player player) {
+        return player == null ? null : this.nmsHandler.getItemInMainHand(player);
     }
 
 
