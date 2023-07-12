@@ -2,7 +2,6 @@ package me.fullpage.nmslib.plugin;
 
 import me.fullpage.manticlib.command.ManticCommand;
 import me.fullpage.nmslib.NMSHandler;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -30,7 +29,7 @@ public final class Main extends JavaPlugin implements NMSHandler {
 
     @Override
     public void sendTitle(Player player, String title, String subtitle) {
-        this.nmsHandler.sendTitle(player, title, subtitle);Bukkit.shutdown();
+        this.nmsHandler.sendTitle(player, title, subtitle);
     }
 
     @Override
