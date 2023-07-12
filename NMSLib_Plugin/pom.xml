@@ -152,5 +152,18 @@
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>me.fullpage</groupId>
+            <artifactId>NMSLib_V1_20_R1</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.fullpage</groupId>
+            <artifactId>NMSLib_V1_20_R2</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 </project>
