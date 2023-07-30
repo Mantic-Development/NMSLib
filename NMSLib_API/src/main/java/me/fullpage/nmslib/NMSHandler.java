@@ -1,7 +1,9 @@
 package me.fullpage.nmslib;
 
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 public interface NMSHandler {
 
@@ -16,5 +18,12 @@ public interface NMSHandler {
     void sendJsonMessage(Player player, String json);
 
     ItemStack getItemInMainHand(Player player);
+
+    Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin);
+    Enchantment lookupEnchantment(String name, int internalId);
+
+    boolean registerEnchantment(Enchantment enchantment);
+
+    boolean isRegistered(Enchantment enchantment);
 
 }

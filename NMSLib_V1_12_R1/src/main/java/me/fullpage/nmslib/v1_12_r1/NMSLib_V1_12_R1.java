@@ -1,16 +1,24 @@
 package me.fullpage.nmslib.v1_12_r1;
 
+import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_12_R1.*;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
+import net.minecraft.server.v1_12_R1.IChatBaseComponent;
+import net.minecraft.server.v1_12_R1.PacketPlayOutChat;
+import net.minecraft.server.v1_12_R1.PacketPlayOutTitle;
+import org.bukkit.NamespacedKey;
+import org.bukkit.craftbukkit.v1_12_R1.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_12_R1.util.CraftChatMessage;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.Plugin;
+
+import java.lang.reflect.Field;
 
 public final class NMSLib_V1_12_R1 implements NMSHandler {
 
@@ -54,6 +62,87 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
     public ItemStack getItemInMainHand(Player player) {
         PlayerInventory inventory;
         return player == null ? null : ((inventory = player.getInventory()) == null ? null : inventory.getItemInMainHand());
+    }
+
+
+
+    @Override
+    public Enchantment lookupEnchantment(String name, int internalId) {
+        for (Enchantment value : Enchantment.values()) {
+            if (value.getName().equals(name) || value.getId() == internalId) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        return new org.bukkit.enchantments.Enchantment(enchantInfo.getInternalId()) {
+            @Override
+            public String getName() {
+                return enchantInfo.getName();
+            }
+
+            @Override
+            public int getMaxLevel() {
+                return enchantInfo.getMaxLevel();
+            }
+
+            @Override
+            public int getStartLevel() {
+                return enchantInfo.getStartLevel();
+            }
+
+            @Override
+            public EnchantmentTarget getItemTarget() {
+                return enchantInfo.getItemTarget();
+            }
+
+            @Override
+            public boolean isTreasure() {
+                return enchantInfo.isTreasure();
+            }
+
+            @Override
+            public boolean isCursed() {
+                return enchantInfo.isCursed();
+            }
+
+            @Override
+            public boolean conflictsWith(Enchantment enchantment) {
+                return enchantInfo.conflictsWith(enchantment);
+            }
+
+            @Override
+            public boolean canEnchantItem(ItemStack itemStack) {
+                return enchantInfo.canEnchantItem(itemStack);
+            }
+        };
+    }
+
+    @Override
+    public boolean registerEnchantment(Enchantment enchantment) {
+        try {
+            Field f = Enchantment.class.getDeclaredField("acceptingNew");
+            f.setAccessible(true);
+            f.set(null, true);
+            f.setAccessible(false);
+            CraftEnchantment.registerEnchantment(enchantment);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean isRegistered(Enchantment enchantment) {
+        for (Enchantment value : Enchantment.values()) {
+            if (value.equals(enchantment)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

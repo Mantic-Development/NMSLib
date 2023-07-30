@@ -1,15 +1,18 @@
 package me.fullpage.nmslib.plugin;
 
 import me.fullpage.manticlib.command.ManticCommand;
+import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Main extends JavaPlugin implements NMSHandler {
@@ -50,6 +53,27 @@ public final class Main extends JavaPlugin implements NMSHandler {
     @Override
     public ItemStack getItemInMainHand(Player player) {
         return player == null ? null : this.nmsHandler.getItemInMainHand(player);
+    }
+
+    @Override
+    public Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        return this.nmsHandler.buildEnchantment(enchantInfo, plugin);
+    }
+
+    @Override
+    public Enchantment lookupEnchantment(String name, int internalId) {
+        return this.nmsHandler.lookupEnchantment(name, internalId);
+    }
+
+
+    @Override
+    public boolean registerEnchantment(Enchantment enchantment) {
+        return this.nmsHandler.registerEnchantment(enchantment);
+    }
+
+    @Override
+    public boolean isRegistered(Enchantment enchantment) {
+        return this.nmsHandler.isRegistered(enchantment);
     }
 
 
