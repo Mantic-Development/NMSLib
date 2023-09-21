@@ -62,6 +62,7 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
         for (Enchantment value : Enchantment.values()) {
+            if (value == null) continue;
             NamespacedKey key = value.getKey();
             if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
                 return value;
@@ -69,6 +70,7 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
         }
         return null;
     }
+
 
     @Override
     public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {

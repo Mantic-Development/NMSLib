@@ -64,7 +64,9 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
         for (Enchantment value : Enchantment.values()) {
-            if (value.getName().equals(name) || value.getId() == internalId) {
+            String enchantmentName;
+            if (value == null || (enchantmentName = value.getName()) == null) continue;
+            if (enchantmentName.equals(name) || value.getId() == internalId) {
                 return value;
             }
         }
