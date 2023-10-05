@@ -75,8 +75,8 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>spigot-1.19.4</version>
-            <systemPath>${pom.basedir}/../libs/spigot-1.20.1-R0.1-SNAPSHOT.jar</systemPath>
+            <version>spigot-1.20.2</version>
+            <systemPath>${pom.basedir}/../libs/spigot-1.20.2-R0.1-SNAPSHOT.jar</systemPath>
             <type>jar</type>
             <optional>true</optional>
             <scope>system</scope>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

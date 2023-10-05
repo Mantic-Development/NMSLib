@@ -7,7 +7,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.world.entity.projectile.EntityFishingHook;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_20_R1.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_20_R1.util.CraftMagicNumbers;
@@ -22,7 +21,7 @@ import java.lang.reflect.Field;
 public final class NMSLib_V1_20_R1 implements NMSHandler {
 
     public NMSLib_V1_20_R1() {
-        ((CraftMagicNumbers)CraftMagicNumbers.INSTANCE).getMappingsVersion();
+        ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
     }
 
     @Override
@@ -50,11 +49,11 @@ public final class NMSLib_V1_20_R1 implements NMSHandler {
     public void clearTitle(Player player) {
         player.resetTitle();
     }
+
     @Override
     public ItemStack getItemInMainHand(Player player) {
         return player == null ? null : player.getInventory().getItemInMainHand();
     }
-
 
 
     @Override
