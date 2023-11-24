@@ -10,6 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.Plugin;
@@ -48,6 +49,11 @@ public final class Main extends JavaPlugin implements NMSHandler {
     @Override
     public void sendJsonMessage(Player player, String json) {
         this.nmsHandler.sendJsonMessage(player, json);
+    }
+
+    @Override
+    public boolean isMainHand(PlayerInteractEvent event) {
+        return this.nmsHandler.isMainHand(event);
     }
 
     @Override

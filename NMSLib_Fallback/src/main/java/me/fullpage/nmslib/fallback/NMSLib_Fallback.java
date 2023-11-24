@@ -8,6 +8,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -205,6 +206,14 @@ public final class NMSLib_Fallback implements NMSHandler {
     @Override
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
+    }
+
+    @Override
+    public boolean isMainHand(PlayerInteractEvent event) {
+        if (ReflectionUtils.supports(9)) {
+            return event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND;
+        }
+        return true;
     }
 
     @Override

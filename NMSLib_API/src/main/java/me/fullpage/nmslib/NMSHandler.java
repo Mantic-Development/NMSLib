@@ -2,6 +2,7 @@ package me.fullpage.nmslib;
 
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -16,6 +17,8 @@ public interface NMSHandler {
     void clearTitle(Player player);
 
     void sendJsonMessage(Player player, String json);
+
+    boolean isMainHand(PlayerInteractEvent event);
 
     ItemStack getItemInMainHand(Player player);
 

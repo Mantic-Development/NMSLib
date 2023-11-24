@@ -7,13 +7,13 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_12_R1.IChatBaseComponent;
 import net.minecraft.server.v1_12_R1.PacketPlayOutChat;
 import net.minecraft.server.v1_12_R1.PacketPlayOutTitle;
-import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_12_R1.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_12_R1.util.CraftChatMessage;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
@@ -30,6 +30,12 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
     @Override
     public void sendJsonMessage(Player player, String json) {
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(new PacketPlayOutChat(IChatBaseComponent.ChatSerializer.a(json)));
+    }
+
+
+    @Override
+    public boolean isMainHand(PlayerInteractEvent event) {
+        return event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND;
     }
 
     @Override
@@ -63,7 +69,6 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
         PlayerInventory inventory;
         return player == null ? null : ((inventory = player.getInventory()) == null ? null : inventory.getItemInMainHand());
     }
-
 
 
     @Override

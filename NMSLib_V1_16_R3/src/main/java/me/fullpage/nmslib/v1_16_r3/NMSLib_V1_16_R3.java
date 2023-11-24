@@ -17,6 +17,7 @@ import org.bukkit.craftbukkit.v1_16_R3.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -50,6 +51,11 @@ public final class NMSLib_V1_16_R3 implements NMSHandler {
     }
 
 
+
+    @Override
+    public boolean isMainHand(PlayerInteractEvent event) {
+        return event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND;
+    }
     @Override
     public ItemStack getItemInMainHand(Player player) {
         return player == null ? null : player.getInventory().getItemInMainHand();

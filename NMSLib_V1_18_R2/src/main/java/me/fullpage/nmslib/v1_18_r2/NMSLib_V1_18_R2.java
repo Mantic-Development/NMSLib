@@ -13,6 +13,7 @@ import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -31,6 +32,11 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
         ((CraftPlayer) player).getHandle().b.a(new PacketPlayOutChat(a, net.minecraft.network.chat.ChatMessageType.a, player.getUniqueId()));
     }
 
+
+    @Override
+    public boolean isMainHand(PlayerInteractEvent event) {
+        return event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND;
+    }
 
     @Override
     public void sendTitle(Player player, String title, String subtitle) {
