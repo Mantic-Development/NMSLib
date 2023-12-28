@@ -290,6 +290,9 @@ public final class NMSLib_Fallback implements NMSHandler {
             f.set(null, true);
             f.setAccessible(false);
             Enchantment.registerEnchantment(enchantment);
+            f.setAccessible(true);
+            f.set(null, false);
+            f.setAccessible(false);
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);

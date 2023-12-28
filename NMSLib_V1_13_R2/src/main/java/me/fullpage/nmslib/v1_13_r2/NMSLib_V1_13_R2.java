@@ -130,6 +130,9 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
             f.set(null, true);
             f.setAccessible(false);
             CraftEnchantment.registerEnchantment(enchantment);
+            f.setAccessible(true);
+            f.set(null, false);
+            f.setAccessible(false);
             return true;
         } catch (Exception e) {
             throw new RuntimeException(e);
