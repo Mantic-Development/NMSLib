@@ -236,6 +236,10 @@ public final class NMSLib_Fallback implements NMSHandler {
 
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        Enchantment e = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
+        if (e != null) {
+            return e;
+        }
         try {
             Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
             registerEnchantment(enchantment);
@@ -295,6 +299,7 @@ public final class NMSLib_Fallback implements NMSHandler {
 
     @Override
     public boolean registerEnchantment(Enchantment enchantment) {
+
         try {
             Field f = Enchantment.class.getDeclaredField("acceptingNew");
             f.setAccessible(true);

@@ -85,6 +85,10 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
 
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        Enchantment enchantment = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
+        if (enchantment != null) {
+           return enchantment;
+        }
         unfreezeRegistry();
         NamespacedKey namespacedKey = new NamespacedKey(plugin, enchantInfo.getName());
         ManticServerEnchant entry = new ManticServerEnchant(enchantInfo);
@@ -124,18 +128,6 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
         BuiltInRegistries.f.l();
     }
 
-    private void registerEnchantment(Plugin plugin, String name, EnchantInfo enchantInfo) {
-        System.out.println("Debug 3");
-        Enchantment enchantment = lookupEnchantment(name, enchantInfo.getInternalId());
-        if (enchantment != null) {
-            return;
-        }
-        MinecraftKey minecraftKey = new MinecraftKey(new NamespacedKey(plugin, enchantInfo.getName()).getNamespace(), name);
-
-        unfreezeRegistry();
-        IRegistry.a(BuiltInRegistries.f, minecraftKey, new ManticServerEnchant(enchantInfo));
-        freezeRegistry();
-    }
 
     @Override
     public boolean isRegistered(org.bukkit.enchantments.Enchantment enchantment) {

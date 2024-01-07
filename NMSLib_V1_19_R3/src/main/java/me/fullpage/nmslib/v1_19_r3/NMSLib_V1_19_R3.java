@@ -122,6 +122,10 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
 
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        Enchantment e = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
+        if (e != null) {
+            return e;
+        }
         try {
             Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
             registerEnchantment(enchantment);

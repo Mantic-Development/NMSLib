@@ -24,7 +24,7 @@ public class ManticServerEnchant extends Enchantment {
 
     private final EnchantInfo enchant;
     public ManticServerEnchant(EnchantInfo enchant) {
-        super(Rarity.d, EnchantmentSlotType.e, nmsSlots(enchant));
+        super(Rarity.d, EnchantmentSlotType.n, nmsSlots(enchant));
         this.enchant = enchant;
     }
 
@@ -58,11 +58,11 @@ public class ManticServerEnchant extends Enchantment {
     }
 
     public int a(int level) {
-        return 1 + level * 10;
+       return super.a(level);
     }
 
     public int b(int level) {
-        return a(level) + 5;
+       return super.b(level);
     }
 
     protected boolean a(Enchantment other) {
