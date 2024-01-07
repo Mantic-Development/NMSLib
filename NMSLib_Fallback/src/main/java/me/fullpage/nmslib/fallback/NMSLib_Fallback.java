@@ -320,5 +320,8 @@ public final class NMSLib_Fallback implements NMSHandler {
         return false;
     }
 
-
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        return lookupEnchantment(name, internalId) != null;
+    }
 }

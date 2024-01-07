@@ -133,6 +133,19 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
             throw new RuntimeException(t);
         }
     }
+
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        for (org.bukkit.enchantments.Enchantment value : Enchantment.values()) {
+            if (value == null) continue;
+            NamespacedKey key = value.getKey();
+            if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {

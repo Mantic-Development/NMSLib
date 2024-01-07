@@ -140,6 +140,18 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
     }
 
     @Override
+    public boolean isRegistered(String name, int internalId) {
+        for (Enchantment value : Enchantment.values()) {
+            String enchantmentName;
+            if (value == null || (enchantmentName = value.getName()) == null) continue;
+            if (enchantmentName.equals(name) || value.getId() == internalId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public boolean registerEnchantment(Enchantment enchantment) {
         try {
             Field f = Enchantment.class.getDeclaredField("acceptingNew");

@@ -85,7 +85,6 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
 
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
-
         unfreezeRegistry();
         NamespacedKey namespacedKey = new NamespacedKey(plugin, enchantInfo.getName());
         ManticServerEnchant entry = new ManticServerEnchant(enchantInfo);
@@ -146,6 +145,10 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
             }
         }
         return false;
+    }
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        return lookupEnchantment(name, internalId) != null;
     }
 
 }

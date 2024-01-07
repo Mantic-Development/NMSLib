@@ -32,4 +32,6 @@ public interface NMSHandler {
 
     boolean isRegistered(Enchantment enchantment);
 
+    boolean isRegistered(String name, int internalId);
+
 }

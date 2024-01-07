@@ -131,6 +131,10 @@ public final class NMSLib_V1_16_R3 implements NMSHandler {
         }
     }
     @Override
+    public boolean isRegistered(String name, int internalId) {
+        return lookupEnchantment(name, internalId) != null;
+    }
+    @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {
             Field f = org.bukkit.enchantments.Enchantment.class.getDeclaredField("acceptingNew");

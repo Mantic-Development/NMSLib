@@ -94,6 +94,11 @@ public final class Main extends JavaPlugin implements NMSHandler {
         return this.nmsHandler.isRegistered(enchantment);
     }
 
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        return this.nmsHandler.isRegistered(name, internalId);
+    }
+
 
     public void setBlock(Location location, Material material) {
         this.setBlock(location.getBlock(), material);

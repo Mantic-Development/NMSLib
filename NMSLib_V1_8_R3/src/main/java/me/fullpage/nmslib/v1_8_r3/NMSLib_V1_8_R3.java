@@ -149,4 +149,14 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
         return false;
     }
 
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        for (Enchantment value : Enchantment.values()) {
+            if (value == null) continue;
+            if (value.getName().equals(name) || value.getId() == internalId) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

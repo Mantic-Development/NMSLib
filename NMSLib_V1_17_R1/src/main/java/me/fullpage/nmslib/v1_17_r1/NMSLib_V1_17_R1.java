@@ -137,6 +137,10 @@ public final class NMSLib_V1_17_R1 implements NMSHandler {
             throw new RuntimeException(t);
         }
     }
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        return lookupEnchantment(name, internalId) != null;
+    }
 
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
