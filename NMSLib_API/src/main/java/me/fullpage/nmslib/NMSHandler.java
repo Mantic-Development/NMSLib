@@ -25,6 +25,9 @@ public interface NMSHandler {
     Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin);
     Enchantment lookupEnchantment(String name, int internalId);
 
+    Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin);
+
+    @Deprecated
     boolean registerEnchantment(Enchantment enchantment);
 
     boolean isRegistered(Enchantment enchantment);

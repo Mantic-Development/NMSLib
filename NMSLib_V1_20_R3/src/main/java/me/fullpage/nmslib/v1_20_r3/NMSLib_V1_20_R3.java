@@ -5,19 +5,23 @@ import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
+import net.minecraft.core.IRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.MinecraftKey;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_20_R3.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_20_R3.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.util.IdentityHashMap;
 
 public final class NMSLib_V1_20_R3 implements NMSHandler {
+
 
     public NMSLib_V1_20_R3() {
         ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
@@ -74,64 +78,64 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
 
     @Override
     public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
-        return new org.bukkit.enchantments.Enchantment(new NamespacedKey(plugin, enchantInfo.getName())) {
-            @Override
-            public String getName() {
-                return enchantInfo.getName();
-            }
+        NamespacedKey key = new NamespacedKey(plugin, enchantInfo.getName());
+        return new ManticApiEnchant(key, enchantInfo);
+    }
 
-            @Override
-            public int getMaxLevel() {
-                return enchantInfo.getMaxLevel();
-            }
 
-            @Override
-            public int getStartLevel() {
-                return enchantInfo.getStartLevel();
-            }
+    @Override
+    public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
 
-            @Override
-            public EnchantmentTarget getItemTarget() {
-                return enchantInfo.getItemTarget();
-            }
-
-            @Override
-            public boolean isTreasure() {
-                return enchantInfo.isTreasure();
-            }
-
-            @Override
-            public boolean isCursed() {
-                return enchantInfo.isCursed();
-            }
-
-            @Override
-            public boolean conflictsWith(org.bukkit.enchantments.Enchantment enchantment) {
-                return enchantInfo.conflictsWith(enchantment);
-            }
-
-            @Override
-            public boolean canEnchantItem(ItemStack itemStack) {
-                return enchantInfo.canEnchantItem(itemStack);
-            }
-        };
+        unfreezeRegistry();
+        NamespacedKey namespacedKey = new NamespacedKey(plugin, enchantInfo.getName());
+        ManticServerEnchant entry = new ManticServerEnchant(enchantInfo);
+        IRegistry.a(BuiltInRegistries.f, namespacedKey.getKey(), entry);
+        freezeRegistry();
+        return CraftEnchantment.minecraftToBukkit(entry);
     }
 
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
+        throw new UnsupportedOperationException("This method is not supported in 1.20.4 and above. Use registerEnchantment(EnchantInfo, Plugin) instead.");
+
+    }
+
+    public void unfreezeRegistry() {
         try {
-            Field f = org.bukkit.enchantments.Enchantment.class.getDeclaredField("acceptingNew");
-            f.setAccessible(true);
-            f.set(null, true);
-            f.setAccessible(false);
-            CraftEnchantment.registerEnchantment(enchantment);
-            f.setAccessible(true);
-            f.set(null, false);
-            f.setAccessible(false);
-            return true;
+            IRegistry<net.minecraft.world.item.enchantment.Enchantment> f = BuiltInRegistries.f;
+            Class<? extends IRegistry> aClass = f.getClass();
+            // set "l" field to false
+            Field l = aClass.getDeclaredField("l");
+            l.setAccessible(true);
+            l.set(f, false);
+            l.setAccessible(false);
+
+
+            Field m = aClass.getDeclaredField("m");
+            m.setAccessible(true);
+            m.set(f, new IdentityHashMap<>());
+            m.setAccessible(false);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+    }
+
+
+    public void freezeRegistry() {
+        BuiltInRegistries.f.l();
+    }
+
+    private void registerEnchantment(Plugin plugin, String name, EnchantInfo enchantInfo) {
+        System.out.println("Debug 3");
+        Enchantment enchantment = lookupEnchantment(name, enchantInfo.getInternalId());
+        if (enchantment != null) {
+            return;
+        }
+        MinecraftKey minecraftKey = new MinecraftKey(new NamespacedKey(plugin, enchantInfo.getName()).getNamespace(), name);
+
+        unfreezeRegistry();
+        IRegistry.a(BuiltInRegistries.f, minecraftKey, new ManticServerEnchant(enchantInfo));
+        freezeRegistry();
     }
 
     @Override

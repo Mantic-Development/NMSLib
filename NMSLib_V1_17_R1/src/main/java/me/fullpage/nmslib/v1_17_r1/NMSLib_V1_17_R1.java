@@ -128,6 +128,17 @@ public final class NMSLib_V1_17_R1 implements NMSHandler {
     }
 
     @Override
+    public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        try {
+            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
+            registerEnchantment(enchantment);
+            return enchantment;
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {
             Field f = org.bukkit.enchantments.Enchantment.class.getDeclaredField("acceptingNew");

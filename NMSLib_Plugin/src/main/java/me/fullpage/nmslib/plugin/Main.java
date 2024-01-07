@@ -72,6 +72,18 @@ public final class Main extends JavaPlugin implements NMSHandler {
     }
 
 
+
+    @Override
+    public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        try {
+            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
+            registerEnchantment(enchantment);
+            return enchantment;
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
     @Override
     public boolean registerEnchantment(Enchantment enchantment) {
         return this.nmsHandler.registerEnchantment(enchantment);

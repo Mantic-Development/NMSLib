@@ -129,6 +129,17 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
     }
 
     @Override
+    public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        try {
+            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
+            registerEnchantment(enchantment);
+            return enchantment;
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
+    @Override
     public boolean registerEnchantment(Enchantment enchantment) {
         try {
             Field f = Enchantment.class.getDeclaredField("acceptingNew");

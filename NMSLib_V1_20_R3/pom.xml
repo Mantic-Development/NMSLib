@@ -68,7 +68,10 @@
             <id>minecraft-libraries</id>
             <name>Minecraft Libraries</name>
             <url>https://libraries.minecraft.net</url>
-        </repository>
+        </repository><repository>
+        <id>papermc</id>
+        <url>https://repo.papermc.io/repository/maven-public/</url>
+    </repository>
     </repositories>
 
 
@@ -77,16 +80,16 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>spigot-1.20.3</version>
+            <version>spigot-1.20.4</version>
             <systemPath>${pom.basedir}/../libs/purpur-1.20.4.jar</systemPath>
             <type>jar</type>
             <optional>true</optional>
             <scope>system</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -94,7 +97,12 @@
             <artifactId>brigadier</artifactId>
             <version>1.0.18</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency><dependency>
+        <groupId>com.mojang</groupId>
+        <artifactId>datafixerupper</artifactId>
+        <version>5.0.28</version>
+        <scope>provided</scope>
+    </dependency>
         <dependency>
             <groupId>me.fullpage</groupId>
             <artifactId>NMSLib_API</artifactId>

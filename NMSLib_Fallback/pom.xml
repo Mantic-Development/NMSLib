@@ -69,10 +69,9 @@
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>1.13.2</version>
-            <systemPath>${pom.basedir}/../libs/spigot-1.13.2.jar</systemPath>
-            <scope>system</scope>
+            <artifactId>spigot-api</artifactId>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>me.fullpage</groupId>

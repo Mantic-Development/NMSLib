@@ -122,6 +122,17 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
         };
     }
 
+
+    @Override
+    public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        try {
+            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
+            registerEnchantment(enchantment);
+            return enchantment;
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {

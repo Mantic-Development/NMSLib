@@ -234,6 +234,17 @@ public final class NMSLib_Fallback implements NMSHandler {
         return null;
     }
 
+    @Override
+    public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        try {
+            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
+            registerEnchantment(enchantment);
+            return enchantment;
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
+    }
+
 
     @Override
     public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
