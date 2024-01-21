@@ -3,16 +3,12 @@ package me.fullpage.nmslib.plugin;
 import me.fullpage.manticlib.command.ManticCommand;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -72,7 +68,6 @@ public final class Main extends JavaPlugin implements NMSHandler {
     }
 
 
-
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
         try {
@@ -99,47 +94,19 @@ public final class Main extends JavaPlugin implements NMSHandler {
         return this.nmsHandler.isRegistered(name, internalId);
     }
 
-
-    public void setBlock(Location location, Material material) {
-        this.setBlock(location.getBlock(), material);
-
+    @Override
+    public boolean isGrown(Block block, BlockState blockState) {
+        return this.nmsHandler.isGrown(block, blockState);
     }
 
-    public void setBlock(Location location, Material material, boolean applyPhysics) {
-        this.setBlock(location.getBlock(), material, applyPhysics);
+    @Override
+    public void setCropToAdult(Block block, BlockState blockState) {
+        this.nmsHandler.setCropToAdult(block, blockState);
     }
 
-    public void setBlock(Location location, Material material, int durability) {
-        this.setBlock(location.getBlock(), material, durability);
-
+    @Override
+    public void setCropToBaby(Block block, BlockState blockState) {
+        this.nmsHandler.setCropToBaby(block, blockState);
     }
-
-    public void setBlock(Location location, Material material, int durability, boolean applyPhysics) {
-        this.setBlock(location.getBlock(), material, durability, applyPhysics);
-
-    }
-
-    public void setBlock(Block block, Material material) {
-        this.setBlock(block, material, true);
-    }
-
-    public void setBlock(Block block, Material material, boolean applyPhysics) {
-        block.setType(material, applyPhysics);
-    }
-
-    public void setBlock(Block block, Material material, int durability) {
-        this.setBlock(block, material, durability, true);
-    }
-
-    public void setBlock(Block block, Material material, int durability, boolean applyPhysics) {
-        BlockState state = block.getState();
-        state.setData(new MaterialData(material, (byte) durability));
-        state.update(true, applyPhysics);
-    }
-
-    public void setBlock(World world, int x, int y, int z, Material material, boolean applyPhysics) {
-        world.getBlockAt(x, y, z).setType(material, applyPhysics);
-    }
-
 
 }

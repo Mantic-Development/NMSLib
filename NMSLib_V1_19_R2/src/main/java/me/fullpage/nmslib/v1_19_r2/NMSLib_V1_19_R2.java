@@ -6,6 +6,11 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.v1_19_R2.enchantments.CraftEnchantment;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
@@ -158,5 +163,67 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isGrown(Block block, org.bukkit.block.BlockState blockState) {
+        if (block == null) {
+            return true;
+        }
+
+        if (blockState == null) {
+            blockState = block.getState();
+        }
+
+        BlockData blockData = blockState.getBlockData();
+        if (blockData instanceof CaveVinesPlant) {
+            CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
+            return caveVinesPlant.isBerries();
+        }
+        if (blockData instanceof Ageable) {
+            Ageable ageable = (Ageable) blockData;
+            return ageable.getAge() >= ageable.getMaximumAge();
+        }
+
+        return true;
+    }
+
+    @Override
+    public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
+        if (block == null) {
+            return ;
+        }
+
+        if (blockState == null) {
+            blockState = block.getState();
+        }
+
+        BlockData blockData = blockState.getBlockData();
+        if (blockData instanceof Ageable) {
+            Ageable ageable = (Ageable) blockData;
+            ageable.setAge(ageable.getMaximumAge());
+            blockState.setBlockData(ageable);
+            blockState.update(true);
+        }
+    }
+
+    @Override
+    public void setCropToBaby(Block block, BlockState blockState) {
+        if (block == null) {
+            return ;
+        }
+
+        if (blockState == null) {
+            blockState = block.getState();
+        }
+
+        BlockData blockData = blockState.getBlockData();
+        if (blockData instanceof Ageable) {
+            Ageable ageable = (Ageable) blockData;
+            ageable.setAge(0);
+            blockState.setBlockData(ageable);
+            blockState.update(true);
+        }
+
     }
 }

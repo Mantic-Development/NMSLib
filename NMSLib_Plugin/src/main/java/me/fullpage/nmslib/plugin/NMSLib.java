@@ -24,8 +24,6 @@ public class NMSLib {
     private static final String nmsVersion = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
     private static NMSHandler nmsHandler;
 
-    private static final NMSLib_Fallback fallback = new NMSLib_Fallback();
-
     public static NMSHandler init(Plugin plugin) {
         plugin.getLogger().info("Found NMS Version: " + nmsVersion);
         switch (nmsVersion) {
@@ -73,7 +71,7 @@ public class NMSLib {
                 break;
             default:
                 plugin.getLogger().info("Cannot find NMS Support, fall backing to api methods. ");
-                nmsHandler = fallback;
+                nmsHandler = new NMSLib_Fallback();
                 break;
         }
         return nmsHandler;

@@ -2,7 +2,16 @@ package me.fullpage.nmslib.v1_8_r3;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
-import net.minecraft.server.v1_8_R3.*;
+import net.minecraft.server.v1_8_R3.ChatComponentText;
+import net.minecraft.server.v1_8_R3.IChatBaseComponent;
+import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
+import net.minecraft.server.v1_8_R3.PacketPlayOutTitle;
+import org.bukkit.CropState;
+import org.bukkit.Material;
+import org.bukkit.NetherWartsState;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.v1_8_R3.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.util.CraftChatMessage;
@@ -11,6 +20,10 @@ import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.CocoaPlant;
+import org.bukkit.material.Crops;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.NetherWarts;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
@@ -126,6 +139,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
             throw new RuntimeException(t);
         }
     }
+
     @Override
     public boolean registerEnchantment(Enchantment enchantment) {
         try {
@@ -163,4 +177,137 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
         }
         return false;
     }
+
+    @Override
+    public boolean isGrown(Block block, BlockState blockState) {
+        if (block == null) {
+            return true;
+        }
+
+        if (blockState == null) {
+            blockState = block.getState();
+        }
+
+        if (blockState == null) {
+            return true;
+        }
+
+        MaterialData data = blockState.getData();
+        if (data instanceof Crops) {
+            return ((Crops) data).getState() == CropState.RIPE;
+        } else if (data instanceof NetherWarts) {
+            return ((NetherWarts) data).getState() == NetherWartsState.RIPE;
+        } else if (data instanceof CocoaPlant) {
+            return ((CocoaPlant) data).getSize() == CocoaPlant.CocoaPlantSize.LARGE;
+        } else if (data != null) {
+            return data.getData() == (byte) 7;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void setCropToAdult(Block block, BlockState blockState) {
+        if (block == null) {
+            return ;
+        }
+
+        if (blockState == null) {
+            blockState = block.getState();
+        }
+
+        if (blockState == null) {
+            return ;
+        }
+
+        MaterialData data = blockState.getData();
+        if (data instanceof NetherWarts) {
+            NetherWarts netherWarts = (NetherWarts) data;
+            if (netherWarts.getState() == NetherWartsState.RIPE) {
+                return;
+            }
+            netherWarts.setState(NetherWartsState.RIPE);
+            blockState.setData(netherWarts);
+            blockState.update(true);
+        } else if (data instanceof Crops) {
+            Crops crops = (Crops) data;
+            if (crops.getState() == CropState.RIPE) {
+                return;
+            }
+            crops.setState(CropState.RIPE);
+            blockState.setData(crops);
+            blockState.update(true);
+        } else if (data instanceof CocoaPlant) {
+            CocoaPlant cocoaPlant = (CocoaPlant) data;
+            cocoaPlant.setSize(CocoaPlant.CocoaPlantSize.LARGE);
+
+            // loop through the blocks around the cocoa plant
+            for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST}) {
+                Block relative = block.getRelative(face);
+                Material relativeType;
+                if (relative != null &&((relativeType = relative.getType()) == Material.LOG || relativeType == Material.LOG_2)) {
+                    cocoaPlant.setFacingDirection(face);
+                    break;
+                }
+            }
+
+            blockState.setData(cocoaPlant);
+            blockState.update(true);
+        } else {
+            try {
+                blockState.setRawData((byte) 7);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
+    @Override
+    public void setCropToBaby(Block block, BlockState blockState) {
+        if (block == null) {
+            return ;
+        }
+
+        if (blockState == null) {
+            blockState = block.getState();
+        }
+
+        if (blockState == null) {
+            return ;
+        }
+
+        MaterialData data = blockState.getData();
+        if (data instanceof NetherWarts) {
+            NetherWarts netherWarts = (NetherWarts) data;
+            netherWarts.setState(NetherWartsState.SEEDED);
+            blockState.setData(netherWarts);
+            blockState.update(true);
+        } else if (data instanceof Crops) {
+            Crops crops = (Crops) data;
+            crops.setState(CropState.SEEDED);
+            blockState.setData(crops);
+            blockState.update(true);
+        } else if (data instanceof CocoaPlant) {
+            CocoaPlant cocoaPlant = (CocoaPlant) data;
+            cocoaPlant.setSize(CocoaPlant.CocoaPlantSize.SMALL);
+
+            // loop through the blocks around the cocoa plant
+            for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST}) {
+                Block relative = block.getRelative(face);
+                Material relativeType;
+                if (relative != null && ((relativeType = relative.getType()) == Material.LOG || relativeType == Material.LOG_2)) {
+                    cocoaPlant.setFacingDirection(face);
+                    break;
+                }
+            }
+
+            blockState.setData(cocoaPlant);
+            blockState.update(true);
+        } else {
+            try {
+                blockState.setRawData((byte) 0);
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
 }

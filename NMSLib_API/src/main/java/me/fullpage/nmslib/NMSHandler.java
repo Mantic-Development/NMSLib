@@ -1,5 +1,7 @@
 package me.fullpage.nmslib;
 
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -23,6 +25,7 @@ public interface NMSHandler {
     ItemStack getItemInMainHand(Player player);
 
     Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin);
+
     Enchantment lookupEnchantment(String name, int internalId);
 
     Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin);
@@ -33,5 +36,11 @@ public interface NMSHandler {
     boolean isRegistered(Enchantment enchantment);
 
     boolean isRegistered(String name, int internalId);
+
+    boolean isGrown(Block block, BlockState blockState);
+
+    void setCropToAdult(Block block, BlockState blockState);
+
+    void setCropToBaby(Block block, BlockState blockState);
 
 }
