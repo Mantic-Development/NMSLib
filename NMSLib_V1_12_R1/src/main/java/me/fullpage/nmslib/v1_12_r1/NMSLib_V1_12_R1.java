@@ -318,7 +318,7 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
             blockState.update(true);
         } else {
             try {
-                blockState.setRawData((byte) 0);
+                block.setData((byte) 7, false);
             } catch (Exception ignored) {
             }
         }

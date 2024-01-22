@@ -5,21 +5,13 @@ import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.level.block.state.IBlockData;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_19_R1.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
@@ -42,7 +34,6 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
     }
 
 
-
     @Override
     public boolean isMainHand(PlayerInteractEvent event) {
         return event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND;
@@ -62,11 +53,11 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
     public void clearTitle(Player player) {
         player.resetTitle();
     }
+
     @Override
     public ItemStack getItemInMainHand(Player player) {
         return player == null ? null : player.getInventory().getItemInMainHand();
     }
-
 
 
     @Override
@@ -142,10 +133,12 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
             throw new RuntimeException(t);
         }
     }
+
     @Override
     public boolean isRegistered(String name, int internalId) {
         return lookupEnchantment(name, internalId) != null;
     }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {
@@ -200,7 +193,7 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
     @Override
     public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -219,7 +212,7 @@ public final class NMSLib_V1_19_R1 implements NMSHandler {
     @Override
     public void setCropToBaby(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {

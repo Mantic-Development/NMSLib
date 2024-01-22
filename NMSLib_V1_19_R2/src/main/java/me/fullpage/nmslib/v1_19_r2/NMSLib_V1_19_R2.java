@@ -34,7 +34,6 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
     }
 
 
-
     @Override
     public boolean isMainHand(PlayerInteractEvent event) {
         return event.getHand() == org.bukkit.inventory.EquipmentSlot.HAND;
@@ -54,11 +53,11 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
     public void clearTitle(Player player) {
         player.resetTitle();
     }
+
     @Override
     public ItemStack getItemInMainHand(Player player) {
         return player == null ? null : player.getInventory().getItemInMainHand();
     }
-
 
 
     @Override
@@ -134,10 +133,12 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
             throw new RuntimeException(t);
         }
     }
+
     @Override
     public boolean isRegistered(String name, int internalId) {
         return lookupEnchantment(name, internalId) != null;
     }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {
@@ -191,7 +192,7 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
     @Override
     public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -210,7 +211,7 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
     @Override
     public void setCropToBaby(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
