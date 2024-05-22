@@ -9,6 +9,7 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutTitle;
 import org.bukkit.CropState;
 import org.bukkit.Material;
 import org.bukkit.NetherWartsState;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -237,6 +238,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
             crops.setState(CropState.RIPE);
             blockState.setData(crops);
             blockState.update(true);
+
         } else if (data instanceof CocoaPlant) {
             CocoaPlant cocoaPlant = (CocoaPlant) data;
             cocoaPlant.setSize(CocoaPlant.CocoaPlantSize.LARGE);

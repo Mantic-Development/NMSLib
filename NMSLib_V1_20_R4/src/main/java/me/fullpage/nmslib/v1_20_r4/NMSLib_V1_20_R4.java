@@ -1,31 +1,36 @@
-package me.fullpage.nmslib.v1_18_r2;
+package me.fullpage.nmslib.v1_20_r4;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.chat.IChatMutableComponent;
-import net.minecraft.network.protocol.game.PacketPlayOutChat;
-import org.bukkit.Material;
+import net.md_5.bungee.chat.ComponentSerializer;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
-import org.bukkit.craftbukkit.v1_18_R2.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R4.enchantments.CraftEnchantment;
+import org.bukkit.craftbukkit.v1_20_R4.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.IdentityHashMap;
 
-public final class NMSLib_V1_18_R2 implements NMSHandler {
+public final class NMSLib_V1_20_R4 implements NMSHandler {
+
+
+    public NMSLib_V1_20_R4() {
+        ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
+    }
 
     @Override
     public void sendActionBar(Player player, String message) {
@@ -34,10 +39,8 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
 
     @Override
     public void sendJsonMessage(Player player, String json) {
-        final IChatMutableComponent a = IChatBaseComponent.ChatSerializer.a(json);
-        ((CraftPlayer) player).getHandle().b.a(new PacketPlayOutChat(a, net.minecraft.network.chat.ChatMessageType.a, player.getUniqueId()));
+        player.spigot().sendMessage(ComponentSerializer.parse(json));
     }
-
 
     @Override
     public boolean isMainHand(PlayerInteractEvent event) {
@@ -65,7 +68,6 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
     }
 
 
-
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
         for (Enchantment value : Enchantment.values()) {
@@ -81,84 +83,85 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
 
     @Override
     public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
-        return new org.bukkit.enchantments.Enchantment(new NamespacedKey(plugin, enchantInfo.getName())) {
-            @Override
-            public String getName() {
-                return enchantInfo.getName();
-            }
-
-            @Override
-            public int getMaxLevel() {
-                return enchantInfo.getMaxLevel();
-            }
-
-            @Override
-            public int getStartLevel() {
-                return enchantInfo.getStartLevel();
-            }
-
-            @Override
-            public EnchantmentTarget getItemTarget() {
-                return enchantInfo.getItemTarget();
-            }
-
-            @Override
-            public boolean isTreasure() {
-                return enchantInfo.isTreasure();
-            }
-
-            @Override
-            public boolean isCursed() {
-                return enchantInfo.isCursed();
-            }
-
-            @Override
-            public boolean conflictsWith(org.bukkit.enchantments.Enchantment enchantment) {
-                return enchantInfo.conflictsWith(enchantment);
-            }
-
-            @Override
-            public boolean canEnchantItem(ItemStack itemStack) {
-                return enchantInfo.canEnchantItem(itemStack);
-            }
-        };
+        NamespacedKey key = new NamespacedKey(plugin, enchantInfo.getName());
+        return new ManticApiEnchant(key, enchantInfo);
     }
 
 
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
-        Enchantment e = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
-        if (e != null) {
-            return e;
-        }
-        try {
-            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
-            registerEnchantment(enchantment);
+        Enchantment enchantment = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
+        if (enchantment != null) {
             return enchantment;
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
         }
+        unfreezeRegistry();
+        NamespacedKey namespacedKey = new NamespacedKey(plugin, enchantInfo.getName());
+        ManticServerEnchant entry = new ManticServerEnchant(enchantInfo);
+
+        Registry.register(getRegistery(), namespacedKey.getKey(), entry);
+        freezeRegistry();
+        return CraftEnchantment.minecraftToBukkit(entry);
     }
-    @Override
-    public boolean isRegistered(String name, int internalId) {
-        return lookupEnchantment(name, internalId) != null;
+
+    private static Registry<net.minecraft.world.item.enchantment.Enchantment> getRegistery() {
+        if (true) {
+            return BuiltInRegistries.ENCHANTMENT;
+        }
+        Registry<net.minecraft.world.item.enchantment.Enchantment> enchantRegistery = null;
+        Field[] declaredFields = BuiltInRegistries.class.getDeclaredFields();
+        for (Field declaredField : declaredFields) {
+            if (Registry.class.isAssignableFrom(declaredField.getType())) {
+                if (!declaredField.getGenericType().getTypeName().contains("Enchantment")) {
+                    continue;
+                }
+                declaredField.setAccessible(true);
+                try {
+                    Registry<net.minecraft.world.item.enchantment.Enchantment> registry = (Registry<net.minecraft.world.item.enchantment.Enchantment>) declaredField.get(null);
+                    enchantRegistery = registry;
+                    return registry;
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return enchantRegistery;
     }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
+        throw new UnsupportedOperationException("This method is not supported in 1.20.4 and above. Use registerEnchantment(EnchantInfo, Plugin) instead.");
+
+    }
+
+    public void unfreezeRegistry() {
         try {
-            Field f = org.bukkit.enchantments.Enchantment.class.getDeclaredField("acceptingNew");
-            f.setAccessible(true);
-            f.set(null, true);
-            f.setAccessible(false);
-            CraftEnchantment.registerEnchantment(enchantment);
-            f.setAccessible(true);
-            f.set(null, false);
-            f.setAccessible(false);
-            return true;
+            try {
+                Registry<net.minecraft.world.item.enchantment.Enchantment> f = getRegistery();
+                Class<?> aClass = f.getClass();
+                // set "l" field to false
+                Field l = aClass.getDeclaredField("l");
+                l.setAccessible(true);
+                l.set(f, false);
+                l.setAccessible(false);
+
+
+                Field m = aClass.getDeclaredField("m");
+                m.setAccessible(true);
+                m.set(f, new IdentityHashMap<>());
+                m.setAccessible(false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
+
+
+    public void freezeRegistry() {
+       getRegistery().freeze();
+    }
+
 
     @Override
     public boolean isRegistered(org.bukkit.enchantments.Enchantment enchantment) {
@@ -168,6 +171,11 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        return lookupEnchantment(name, internalId) != null;
     }
 
 
@@ -186,6 +194,7 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
             CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
             return caveVinesPlant.isBerries();
         }
+
         if (blockData instanceof Ageable) {
             Ageable ageable = (Ageable) blockData;
             return ageable.getAge() >= ageable.getMaximumAge();
@@ -197,7 +206,7 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
     @Override
     public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -216,7 +225,7 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
     @Override
     public void setCropToBaby(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {

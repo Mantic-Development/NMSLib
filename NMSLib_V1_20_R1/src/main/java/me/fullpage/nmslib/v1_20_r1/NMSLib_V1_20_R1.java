@@ -5,8 +5,6 @@ import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.network.PlayerConnection;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -139,10 +137,12 @@ public final class NMSLib_V1_20_R1 implements NMSHandler {
             throw new RuntimeException(t);
         }
     }
+
     @Override
     public boolean isRegistered(String name, int internalId) {
         return lookupEnchantment(name, internalId) != null;
     }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         try {
@@ -197,7 +197,7 @@ public final class NMSLib_V1_20_R1 implements NMSHandler {
     @Override
     public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -216,7 +216,7 @@ public final class NMSLib_V1_20_R1 implements NMSHandler {
     @Override
     public void setCropToBaby(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {

@@ -1,18 +1,11 @@
-package me.fullpage.nmslib.v1_20_r3;
+package me.fullpage.nmslib.v1_20_r4;
 
-import io.papermc.paper.enchantments.EnchantmentRarity;
 import me.fullpage.nmslib.EnchantInfo;
-import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
-import org.bukkit.entity.EntityCategory;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.Set;
 
 public class ManticApiEnchant extends Enchantment {
 
@@ -23,11 +16,6 @@ public class ManticApiEnchant extends Enchantment {
     public ManticApiEnchant(NamespacedKey key, EnchantInfo enchantInfo) {
         this.key = key;
         this.enchantInfo = enchantInfo;
-    }
-
-    @Override
-    public @NotNull String translationKey() {
-        return "";
     }
 
     @Override
@@ -51,7 +39,7 @@ public class ManticApiEnchant extends Enchantment {
     }
 
     @Override
-    public EnchantmentTarget getItemTarget() {
+    public @NotNull EnchantmentTarget getItemTarget() {
         return enchantInfo.getItemTarget();
     }
 
@@ -75,51 +63,10 @@ public class ManticApiEnchant extends Enchantment {
         return enchantInfo.canEnchantItem(itemStack);
     }
 
+    @NotNull
     @Override
-    public @NotNull Component displayName(int i) {
-        return Component.empty();
-    }
-
-    @Override
-    public boolean isTradeable() {
-        return false;
-    }
-
-    @Override
-    public boolean isDiscoverable() {
-        return false;
-    }
-
-    @Override
-    public int getMinModifiedCost(int i) {
-        return 0;
-    }
-
-    @Override
-    public int getMaxModifiedCost(int i) {
-        return 0;
-    }
-
-    @Override
-    public @NotNull EnchantmentRarity getRarity() {
-        return EnchantmentRarity.COMMON;
-    }
-
-    @Override
-    public float getDamageIncrease(int i, @NotNull EntityCategory entityCategory) {
-        return 0;
-    }
-
-    @Override
-    public @NotNull Set<EquipmentSlot> getActiveSlots() {
-        EquipmentSlot[] values = EquipmentSlot.values();
-        Set<EquipmentSlot> slots = new java.util.HashSet<>(values.length);
-        slots.addAll(Arrays.asList(values));
-        return slots;
-    }
-
-    @Override
-    public @NotNull String getTranslationKey() {
+    public String getTranslationKey() {
         return "";
     }
+
 }
