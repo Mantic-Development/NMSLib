@@ -39,7 +39,7 @@ public class ManticServerEnchant extends Enchantment {
 
     @Override
     public boolean isDiscoverable() { // removes from enchantment table or use by items in loot tables
-        return false;
+        return true;
     }
 
     @Override
@@ -59,20 +59,29 @@ public class ManticServerEnchant extends Enchantment {
 
     private static EnchantmentDefinition getDefinition(EnchantInfo enchant) {
         TagKey<Item> category = nmsCategory(enchant);
-        int weight = Rarity.COMMON.ordinal();
+        int weight = 10;
+        /*
+        * COMMON(10),
+          UNCOMMON(5),
+          RARE(2),
+          VERY_RARE(1);
+        * */
 
         int maxLevel = enchant.getMaxLevel();
-        Cost minCost = new Cost(99999999, 99999999);
-        Cost maxCost = new Cost(99999999, 99999999);
-        int anvilCost = 50;
+        Cost minCost = new Cost(1, 0);
+        Cost maxCost = new Cost(1, 0);
+        int anvilCost = 10;
         net.minecraft.world.entity.EquipmentSlot[] slots = nmsSlots(enchant);
 
         return Enchantment.definition(category, weight, maxLevel, minCost, maxCost, anvilCost, slots);
     }
 
     public static TagKey<Item> nmsCategory(EnchantInfo data) {
-        return switch (data.getItemTarget()) {
-            case ALL -> ItemTags.DURABILITY_ENCHANTABLE;
+        EnchantmentTarget itemTarget = data.getItemTarget();
+        if (itemTarget == EnchantmentTarget.ALL) {
+           itemTarget = EnchantmentTarget.BREAKABLE;
+        }
+        return switch (itemTarget) {
             case WEAPON -> ItemTags.WEAPON_ENCHANTABLE;
             case TOOL -> ItemTags.MINING_ENCHANTABLE;
             case ARMOR -> ItemTags.ARMOR_ENCHANTABLE;
@@ -96,6 +105,7 @@ public class ManticServerEnchant extends Enchantment {
 
         List<EquipmentSlot> temp = new ArrayList<>();
         EnchantmentTarget itemTarget = enchantment.getItemTarget() == null ? EnchantmentTarget.BREAKABLE : enchantment.getItemTarget();
+        if (itemTarget == EnchantmentTarget.ALL) itemTarget = EnchantmentTarget.BREAKABLE;
         switch (itemTarget) {
             case ARMOR:
                 temp.add(EquipmentSlot.FEET);
@@ -158,7 +168,7 @@ public class ManticServerEnchant extends Enchantment {
                 break;
         }
 
-        EquipmentSlot[] slots = temp.toArray(new EquipmentSlot[temp.size()]);
+        EquipmentSlot[] slots = temp.toArray(new EquipmentSlot[0]);
 
         net.minecraft.world.entity.EquipmentSlot[] nmsSlots = new net.minecraft.world.entity.EquipmentSlot[slots.length];
         for (int index = 0; index < nmsSlots.length; index++) {

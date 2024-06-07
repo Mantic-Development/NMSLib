@@ -196,7 +196,7 @@ public final class NMSLib_V1_18_R1 implements NMSHandler {
     @Override
     public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -210,12 +210,19 @@ public final class NMSLib_V1_18_R1 implements NMSHandler {
             blockState.setBlockData(ageable);
             blockState.update(true);
         }
+
+        if (blockData instanceof CaveVinesPlant) {
+            CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
+            caveVinesPlant.setBerries(true);
+            blockState.setBlockData(caveVinesPlant);
+            blockState.update(true);
+        }
     }
 
     @Override
     public void setCropToBaby(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -227,6 +234,13 @@ public final class NMSLib_V1_18_R1 implements NMSHandler {
             Ageable ageable = (Ageable) blockData;
             ageable.setAge(0);
             blockState.setBlockData(ageable);
+            blockState.update(true);
+        }
+
+        if (blockData instanceof CaveVinesPlant) {
+            CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
+            caveVinesPlant.setBerries(false);
+            blockState.setBlockData(caveVinesPlant);
             blockState.update(true);
         }
 

@@ -206,6 +206,13 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
             blockState.setBlockData(ageable);
             blockState.update(true);
         }
+
+        if (blockData instanceof CaveVinesPlant) {
+            CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
+            caveVinesPlant.setBerries(true);
+            blockState.setBlockData(caveVinesPlant);
+            blockState.update(true);
+        }
     }
 
     @Override
@@ -223,6 +230,13 @@ public final class NMSLib_V1_19_R2 implements NMSHandler {
             Ageable ageable = (Ageable) blockData;
             ageable.setAge(0);
             blockState.setBlockData(ageable);
+            blockState.update(true);
+        }
+
+        if (blockData instanceof CaveVinesPlant) {
+            CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
+            caveVinesPlant.setBerries(false);
+            blockState.setBlockData(caveVinesPlant);
             blockState.update(true);
         }
 
