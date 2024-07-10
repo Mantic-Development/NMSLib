@@ -28,6 +28,10 @@ public enum Version {
      * Represents the 1.20.5 & 1.20.6 version of Minecraft
      */
     v1_20_R4,
+    /**
+     * Represents the 1.21 version of Minecraft
+     */
+    v1_21_R1,
 
     UNKNOWN;
 

@@ -1,33 +1,29 @@
-package me.fullpage.nmslib.v1_20_r4;
+package me.fullpage.nmslib.v1_21_r1;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.MinecraftServer;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
-import org.bukkit.craftbukkit.v1_20_R4.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_20_R4.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.v1_21_R1.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Field;
-import java.util.IdentityHashMap;
-
-public final class NMSLib_V1_20_R4 implements NMSHandler {
+public final class NMSLib_V1_21_R1 implements NMSHandler {
 
 
-    public NMSLib_V1_20_R4() {
+    public NMSLib_V1_21_R1() {
         ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
     }
 
@@ -93,52 +89,17 @@ public final class NMSLib_V1_20_R4 implements NMSHandler {
         if (enchantment != null) {
             return enchantment;
         }
-        unfreezeRegistry();
-        NamespacedKey namespacedKey = new NamespacedKey(plugin, enchantInfo.getName());
-        ManticServerEnchant entry = new ManticServerEnchant(enchantInfo);
+        EnchantHandler.unfreezeRegistry();
 
-        Registry.register(getRegistery(), namespacedKey.getKey(), entry);
-        freezeRegistry();
-        return CraftEnchantment.minecraftToBukkit(entry);
-    }
-
-    private static Registry<net.minecraft.world.item.enchantment.Enchantment> getRegistery() {
-        return BuiltInRegistries.ENCHANTMENT;
+        Enchantment ench = EnchantHandler.registerEnchantment(enchantInfo);
+        EnchantHandler.freezeRegistry();
+        return ench;
     }
 
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         throw new UnsupportedOperationException("This method is not supported in 1.20.4 and above. Use registerEnchantment(EnchantInfo, Plugin) instead.");
 
-    }
-
-    public void unfreezeRegistry() {
-        try {
-            try {
-                Registry<net.minecraft.world.item.enchantment.Enchantment> f = getRegistery();
-                Class<?> aClass = f.getClass();
-                // set "l" field to false
-                Field l = aClass.getDeclaredField("l");
-                l.setAccessible(true);
-                l.set(f, false);
-                l.setAccessible(false);
-
-
-                Field m = aClass.getDeclaredField("m");
-                m.setAccessible(true);
-                m.set(f, new IdentityHashMap<>());
-                m.setAccessible(false);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void freezeRegistry() {
-        getRegistery().freeze();
     }
 
 
