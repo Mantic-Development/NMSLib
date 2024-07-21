@@ -15,12 +15,17 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_13_R2.CraftWorld;
 import org.bukkit.craftbukkit.v1_13_R2.enchantments.CraftEnchantment;
+import org.bukkit.craftbukkit.v1_13_R2.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_13_R2.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_13_R2.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_13_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftChatMessage;
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -242,5 +247,53 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
 
     }
 
+
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        if (entity == null || moveTo == null) {
+            return;
+        }
+
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient)) {
+            return;
+        }
+        EntityInsentient entityInsentient = (EntityInsentient) handle;
+        entityInsentient.getNavigation().a(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
+    }
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient)) {
+            return;
+        }
+        EntityInsentient entityInsentient = (EntityInsentient) handle;
+        entityInsentient.getNavigation().q();
+    }
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
+        try {
+            Field hookEntity = event.getClass().getDeclaredField("hookEntity");
+            hookEntity.setAccessible(true);
+            Object object = hookEntity.get(event);
+            CraftEntity craftEntity = (CraftEntity) object;
+            EntityFishingHook entityFishingHook = (EntityFishingHook) craftEntity.getHandle();
+
+            Field fishCatchTime = EntityFishingHook.class.getDeclaredField("aw");
+            fishCatchTime.setAccessible(true);
+            fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
+            fishCatchTime.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

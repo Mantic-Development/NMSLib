@@ -9,6 +9,9 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutChat;
 import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.entity.EntityInsentient;
+import net.minecraft.world.entity.EntityLiving;
+import net.minecraft.world.entity.projectile.EntityFishingHook;
 import net.minecraft.world.level.block.state.IBlockData;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,11 +24,16 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_17_R1.enchantments.CraftEnchantment;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_17_R1.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -251,6 +259,53 @@ public final class NMSLib_V1_17_R1 implements NMSHandler {
             blockState.update(true);
         }
 
+    }
+
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        if (entity == null || moveTo == null) {
+            return;
+        }
+
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient entityInsentient)) {
+            return;
+        }
+        entityInsentient.getNavigation().a(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
+    }
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient entityInsentient)) {
+            return;
+        }
+        entityInsentient.getNavigation().o();
+    }
+
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
+        try {
+            Field hookEntity = event.getClass().getDeclaredField("hookEntity");
+            hookEntity.setAccessible(true);
+            Object object = hookEntity.get(event);
+            CraftEntity craftEntity = (CraftEntity) object;
+            EntityFishingHook entityFishingHook = (EntityFishingHook) craftEntity.getHandle();
+
+            Field fishCatchTime = EntityFishingHook.class.getDeclaredField("ar");
+            fishCatchTime.setAccessible(true);
+            fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
+            fishCatchTime.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

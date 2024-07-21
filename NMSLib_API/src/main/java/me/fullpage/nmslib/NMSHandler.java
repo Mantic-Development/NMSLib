@@ -1,9 +1,12 @@
 package me.fullpage.nmslib;
 
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -42,5 +45,11 @@ public interface NMSHandler {
     void setCropToAdult(Block block, BlockState blockState);
 
     void setCropToBaby(Block block, BlockState blockState);
+
+    void moveTo(LivingEntity entity, Location moveTo, float speed);
+
+    void stopNavigation(LivingEntity entity);
+
+    void setBiteTime(PlayerFishEvent event, int ticks);
 
 }

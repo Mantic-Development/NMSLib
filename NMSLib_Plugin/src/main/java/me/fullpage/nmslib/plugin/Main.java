@@ -3,10 +3,13 @@ package me.fullpage.nmslib.plugin;
 import me.fullpage.manticlib.command.ManticCommand;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -109,4 +112,18 @@ public final class Main extends JavaPlugin implements NMSHandler {
         this.nmsHandler.setCropToBaby(block, blockState);
     }
 
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        this.nmsHandler.moveTo(entity, moveTo, speed);
+    }
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        this.nmsHandler.stopNavigation(entity);
+    }
+
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
+        this.nmsHandler.setBiteTime(event, ticks);
+    }
 }

@@ -4,6 +4,7 @@ import me.fullpage.manticlib.utils.ReflectionUtils;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.chat.ComponentSerializer;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -11,7 +12,9 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -390,5 +393,25 @@ public final class NMSLib_Fallback implements NMSHandler {
             blockState.update(true);
         }
 
+    }
+
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        if (entity == null) {
+            return;
+        }
+        entity.teleport(moveTo);
+    }
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+      moveTo(entity, entity.getLocation(), 1);
+    }
+
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
     }
 }

@@ -6,19 +6,31 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.level.pathfinder.PathFinder;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.craftbukkit.v1_21_R1.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_21_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_21_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_21_R1.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+
+import java.lang.reflect.Field;
 
 public final class NMSLib_V1_21_R1 implements NMSHandler {
 
@@ -194,5 +206,53 @@ public final class NMSLib_V1_21_R1 implements NMSHandler {
             blockState.update(true);
         }
 
+    }
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        if (entity == null || moveTo == null) {
+            return;
+        }
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        net.minecraft.world.entity.LivingEntity handle = craftEntity.getHandle();
+
+        if (!(handle instanceof PathfinderMob pathfinderMob)) {
+            return;
+        }
+        pathfinderMob.getNavigation().moveTo(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
+    }
+
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        net.minecraft.world.entity.LivingEntity handle = craftEntity.getHandle();
+        if (!(handle instanceof PathfinderMob pathfinderMob)) {
+            return;
+        }
+        PathNavigation navigation = pathfinderMob.getNavigation();
+        navigation.stop();
+    }
+
+
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
+        try {
+            Field hookEntity = event.getClass().getDeclaredField("hookEntity");
+            hookEntity.setAccessible(true);
+            Object object = hookEntity.get(event);
+            CraftEntity craftEntity = (CraftEntity) object;
+            FishingHook entityFishingHook = (FishingHook) craftEntity.getHandle();
+
+            Field fishCatchTime = FishingHook.class.getDeclaredField("l"); // ignore cannot resolve, it will be remapped
+            fishCatchTime.setAccessible(true);
+            fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
+            fishCatchTime.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

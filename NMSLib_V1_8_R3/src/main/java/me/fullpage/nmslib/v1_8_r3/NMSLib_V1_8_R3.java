@@ -2,23 +2,24 @@ package me.fullpage.nmslib.v1_8_r3;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
-import net.minecraft.server.v1_8_R3.ChatComponentText;
-import net.minecraft.server.v1_8_R3.IChatBaseComponent;
-import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
-import net.minecraft.server.v1_8_R3.PacketPlayOutTitle;
+import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.CropState;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NetherWartsState;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.v1_8_R3.enchantments.CraftEnchantment;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.util.CraftChatMessage;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.CocoaPlant;
@@ -210,7 +211,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
     @Override
     public void setCropToAdult(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -218,7 +219,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
         }
 
         if (blockState == null) {
-            return ;
+            return;
         }
 
         MaterialData data = blockState.getData();
@@ -247,7 +248,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
             for (BlockFace face : new BlockFace[]{BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST}) {
                 Block relative = block.getRelative(face);
                 Material relativeType;
-                if (relative != null &&((relativeType = relative.getType()) == Material.LOG || relativeType == Material.LOG_2)) {
+                if (relative != null && ((relativeType = relative.getType()) == Material.LOG || relativeType == Material.LOG_2)) {
                     cocoaPlant.setFacingDirection(face);
                     break;
                 }
@@ -266,7 +267,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
     @Override
     public void setCropToBaby(Block block, BlockState blockState) {
         if (block == null) {
-            return ;
+            return;
         }
 
         if (blockState == null) {
@@ -274,7 +275,7 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
         }
 
         if (blockState == null) {
-            return ;
+            return;
         }
 
         MaterialData data = blockState.getData();
@@ -309,6 +310,54 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
                 blockState.setRawData((byte) 0);
             } catch (Exception ignored) {
             }
+        }
+    }
+
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        if (entity == null || moveTo == null) {
+            return;
+        }
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient)) {
+            return;
+        }
+        EntityInsentient entityInsentient = (EntityInsentient) handle;
+        entityInsentient.getNavigation().a(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
+    }
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient)) {
+            return;
+        }
+        EntityInsentient entityInsentient = (EntityInsentient) handle;
+        entityInsentient.getNavigation().n();
+    }
+
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
+        try {
+            Field hookEntity = event.getClass().getDeclaredField("hookEntity");
+            hookEntity.setAccessible(true);
+            Object object = hookEntity.get(event);
+            CraftEntity craftEntity = (CraftEntity) object;
+            EntityFishingHook entityFishingHook = (EntityFishingHook) craftEntity.getHandle();
+
+            Field fishCatchTime = EntityFishingHook.class.getDeclaredField("aw");
+            fishCatchTime.setAccessible(true);
+            fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
+            fishCatchTime.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

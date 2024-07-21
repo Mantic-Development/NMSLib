@@ -5,6 +5,10 @@ import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
+import net.minecraft.world.entity.EntityInsentient;
+import net.minecraft.world.entity.EntityLiving;
+import net.minecraft.world.entity.projectile.EntityFishingHook;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -12,10 +16,15 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.v1_19_R3.enchantments.CraftEnchantment;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -245,5 +254,49 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
             blockState.update(true);
         }
 
+    }
+    @Override
+    public void moveTo(LivingEntity entity, Location moveTo, float speed) {
+        if (entity == null || moveTo == null) {
+            return;
+        }
+
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        EntityLiving handle = craftEntity.getHandle();
+        if (!(handle instanceof EntityInsentient entityInsentient)) {
+            return;
+        }
+        entityInsentient.D().a(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
+    }
+
+    @Override
+    public void stopNavigation(LivingEntity entity) {
+        if (entity == null) {
+            return;
+        }
+
+        // Unsure so sending to current location
+        moveTo(entity, entity.getLocation(), 1);
+    }
+
+
+
+
+    @Override
+    public void setBiteTime(PlayerFishEvent event, int ticks) {
+        try {
+            Field hookEntity = event.getClass().getDeclaredField("hookEntity");
+            hookEntity.setAccessible(true);
+            Object object = hookEntity.get(event);
+            CraftEntity craftEntity = (CraftEntity) object;
+            EntityFishingHook entityFishingHook = (EntityFishingHook) craftEntity.getHandle();
+
+            Field fishCatchTime = EntityFishingHook.class.getDeclaredField("k");
+            fishCatchTime.setAccessible(true);
+            fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
+            fishCatchTime.setAccessible(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
