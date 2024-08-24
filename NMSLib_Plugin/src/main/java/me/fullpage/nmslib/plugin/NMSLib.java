@@ -36,6 +36,8 @@ public class NMSLib {
             ver = Bukkit.getBukkitVersion().split("-")[0];
             if (ver.equals("1.20.5") || ver.equals("1.20.6")) {
                 ver = "v1_20_R4";
+            } if (ver.equals("1.21") || ver.equals("1.21.1")) {
+                ver = "v1_21_R1";
             }
         } finally {
             nmsVersion = ver;

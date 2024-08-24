@@ -5,12 +5,9 @@ import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.projectile.FishingHook;
-import net.minecraft.world.level.pathfinder.PathFinder;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -18,7 +15,6 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
-import org.bukkit.craftbukkit.v1_21_R1.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_21_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_21_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_21_R1.util.CraftMagicNumbers;
@@ -207,6 +203,7 @@ public final class NMSLib_V1_21_R1 implements NMSHandler {
         }
 
     }
+
     @Override
     public void moveTo(LivingEntity entity, Location moveTo, float speed) {
         if (entity == null || moveTo == null) {
@@ -255,4 +252,5 @@ public final class NMSLib_V1_21_R1 implements NMSHandler {
             e.printStackTrace();
         }
     }
+
 }
