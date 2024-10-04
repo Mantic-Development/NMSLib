@@ -60,8 +60,9 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
 
     @Override
     public void clearTitle(Player player) {
-        PacketPlayOutTitle packetReset = new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.RESET, null);
+        PacketPlayOutTitle packetReset = new PacketPlayOutTitle(PacketPlayOutTitle.EnumTitleAction.CLEAR, null);
         ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packetReset);
+        // clear sub title
     }
 
     @Override

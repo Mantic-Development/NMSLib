@@ -5,7 +5,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import org.bukkit.craftbukkit.v1_20_R4.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.v1_20_R4.enchantments.CraftEnchantment;
@@ -79,7 +78,7 @@ public class ManticServerEnchant extends Enchantment {
     public static TagKey<Item> nmsCategory(EnchantInfo data) {
         EnchantmentTarget itemTarget = data.getItemTarget();
         if (itemTarget == EnchantmentTarget.ALL) {
-           itemTarget = EnchantmentTarget.BREAKABLE;
+            itemTarget = EnchantmentTarget.BREAKABLE;
         }
         return switch (itemTarget) {
             case WEAPON -> ItemTags.WEAPON_ENCHANTABLE;

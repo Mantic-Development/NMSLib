@@ -18,7 +18,6 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.v1_20_R4.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_20_R4.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_20_R4.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R4.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_20_R4.util.CraftMagicNumbers;
@@ -257,7 +256,6 @@ public final class NMSLib_V1_20_R4 implements NMSHandler {
         }
         pathfinderMob.getNavigation().moveTo(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
     }
-
 
 
     @Override
