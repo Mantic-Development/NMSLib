@@ -77,6 +77,12 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
     }
 
 
+    @SuppressWarnings("removal")
+    @Override
+    public ItemStack getItemInUse(Player player) {
+        return player == null ? null : player.getItemInUse();
+    }
+
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
         for (Enchantment value : Enchantment.values()) {

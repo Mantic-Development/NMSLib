@@ -61,6 +61,11 @@ public final class Main extends JavaPlugin implements NMSHandler {
     }
 
     @Override
+    public ItemStack getItemInUse(Player player) {
+        return this.getItemInMainHand(player);
+    }
+
+    @Override
     public Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
         return this.nmsHandler.buildEnchantment(enchantInfo, plugin);
     }

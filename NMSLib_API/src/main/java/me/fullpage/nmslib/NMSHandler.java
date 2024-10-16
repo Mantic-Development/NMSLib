@@ -27,6 +27,8 @@ public interface NMSHandler {
 
     ItemStack getItemInMainHand(Player player);
 
+    ItemStack getItemInUse(Player player);
+
     Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin);
 
     Enchantment lookupEnchantment(String name, int internalId);

@@ -81,6 +81,11 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
     }
 
     @Override
+    public ItemStack getItemInUse(Player player) {
+        return this.getItemInMainHand(player);
+    }
+
+    @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
         for (Enchantment value : Enchantment.values()) {
             String enchantmentName;

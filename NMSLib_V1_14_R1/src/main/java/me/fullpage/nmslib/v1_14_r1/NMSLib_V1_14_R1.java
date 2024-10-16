@@ -73,7 +73,10 @@ public final class NMSLib_V1_14_R1 implements NMSHandler {
         return player == null ? null : player.getInventory().getItemInMainHand();
     }
 
-
+    @Override
+    public ItemStack getItemInUse(Player player) {
+        return this.getItemInMainHand(player);
+    }
 
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {

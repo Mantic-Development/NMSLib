@@ -228,6 +228,10 @@ public final class NMSLib_Fallback implements NMSHandler {
         return player == null ? null : player.getItemInHand();
     }
 
+    @Override
+    public ItemStack getItemInUse(Player player) {
+        return player == null ? null : player.getItemInUse();
+    }
 
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
