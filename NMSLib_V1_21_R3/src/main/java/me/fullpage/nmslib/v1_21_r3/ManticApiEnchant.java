@@ -1,4 +1,4 @@
-package me.fullpage.nmslib.v1_21_r1;
+package me.fullpage.nmslib.v1_21_r3;
 
 import io.papermc.paper.enchantments.EnchantmentRarity;
 import io.papermc.paper.registry.set.RegistryKeySet;
@@ -63,7 +63,7 @@ public class ManticApiEnchant extends Enchantment {
     }
 
     @Override
-    public boolean conflictsWith(org.bukkit.enchantments.Enchantment enchantment) {
+    public boolean conflictsWith(Enchantment enchantment) {
         return enchantInfo.conflictsWith(enchantment);
     }
 

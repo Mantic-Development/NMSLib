@@ -32,6 +32,8 @@ public enum Version {
      * Represents the 1.21 version of Minecraft
      */
     v1_21_R1,
+    v1_21_R2,
+    v1_21_R3,
 
     UNKNOWN;
 

@@ -1,14 +1,16 @@
-package me.fullpage.nmslib.v1_21_r1;
+package me.fullpage.nmslib.v1_21_r2;
 
 import me.fullpage.manticlib.utils.RandomMaterials;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.Reflect;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.EnchantmentTags;
@@ -27,37 +29,77 @@ import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.BiConsumer;
 
 public class EnchantHandler {
 
     private static final MinecraftServer minecraftServer;
-    private static final Registry<Enchantment> enchantRegistery;
+    private static final MappedRegistry<Enchantment> enchantRegistery;
+    private static final MappedRegistry<Item> itemRegistery;
 
     private static final String HolderSetNamedContentsField = "c";
-    private static final String holderReferenceTagField = "b";
+
+    private static final String REGISTRY_FROZEN_TAGS_FIELD = "j"; // frozenTags
+    private static final String REGISTRY_ALL_TAGS_FIELD    = "k"; // allTags
+    private static final String TAG_SET_UNBOUND_METHOD     = "a"; // .unbound()
+    private static final String TAG_SET_MAP_FIELD          = "val$map";
 
     static {
         minecraftServer = ((CraftServer) Bukkit.getServer()).getServer();
-        enchantRegistery = minecraftServer.registryAccess().registry(Registries.ENCHANTMENT).orElse(null);
+        enchantRegistery = (MappedRegistry<Enchantment>) minecraftServer.registryAccess().lookup(Registries.ENCHANTMENT).orElseThrow();
+        itemRegistery = (MappedRegistry<Item>) minecraftServer.registryAccess().lookup(Registries.ITEM).orElseThrow();
     }
 
     public static void unfreezeRegistry() {
-        Reflect.setFieldValue(enchantRegistery, "l", false);
-        Reflect.setFieldValue(enchantRegistery, "m", new IdentityHashMap<>());
+        unfreeze(enchantRegistery);
+        unfreeze(itemRegistery);
     }
 
     public static void freezeRegistry() {
-        enchantRegistery.freeze();
+        freeze(enchantRegistery);
+        freeze(itemRegistery);
     }
 
-    public static net.minecraft.world.entity.EquipmentSlotGroup[] nmsSlots(EnchantInfo enchantment) {
+    private static <T> void unfreeze(@NotNull MappedRegistry<T> registry) {
+        Reflect.setFieldValue(registry, "l", false);             // MappedRegistry#frozen
+        Reflect.setFieldValue(registry, "m", new IdentityHashMap<>()); // MappedRegistry#unregisteredIntrusiveHolders
+    }
+
+    private static <T> void freeze(@NotNull MappedRegistry<T> registry) {
+        Object tagSet = getAllTags(registry);
+
+        Map<TagKey<T>, HolderSet.Named<T>> tagsMap = getTagsMap(tagSet);
+        Map<TagKey<T>, HolderSet.Named<T>> frozenTags = getFrozenTags(registry);
+
+        tagsMap.forEach(frozenTags::putIfAbsent);
+
+        unbound(registry);
+
+        registry.freeze();
+
+        frozenTags.forEach(tagsMap::putIfAbsent);
+
+        Reflect.setFieldValue(tagSet, TAG_SET_MAP_FIELD, tagsMap);
+        Reflect.setFieldValue(registry, REGISTRY_ALL_TAGS_FIELD, tagSet);
+    }
+
+    private static <T> void unbound(@NotNull MappedRegistry<T> registry) {
+        Class<?> tagSetClass = Reflect.getInnerClass(MappedRegistry.class.getName(), "TagSet");
+
+        Method unboundMethod = Reflect.getMethod(tagSetClass, TAG_SET_UNBOUND_METHOD);
+        Object unboundTagSet = Reflect.invokeMethod(unboundMethod, registry); // new TagSet object.
+
+        Reflect.setFieldValue(registry, REGISTRY_ALL_TAGS_FIELD, unboundTagSet);
+    }
+
+    public static EquipmentSlotGroup[] nmsSlots(EnchantInfo enchantment) {
 
         List<EquipmentSlotGroup> temp = new ArrayList<>();
         EnchantmentTarget itemTarget = enchantment.getItemTarget() == null ? EnchantmentTarget.BREAKABLE : enchantment.getItemTarget();
         if (itemTarget == EnchantmentTarget.ALL) {
-            return new net.minecraft.world.entity.EquipmentSlotGroup[]{EquipmentSlotGroup.ANY};
+            return new EquipmentSlotGroup[]{EquipmentSlotGroup.ANY};
         }
         switch (itemTarget) {
             case ARMOR:
@@ -123,7 +165,7 @@ public class EnchantHandler {
 
         EquipmentSlot[] slots = temp.toArray(new EquipmentSlot[0]);
 
-        net.minecraft.world.entity.EquipmentSlotGroup[] nmsSlots = new net.minecraft.world.entity.EquipmentSlotGroup[slots.length];
+        EquipmentSlotGroup[] nmsSlots = new EquipmentSlotGroup[slots.length];
         for (int index = 0; index < nmsSlots.length; index++) {
             EquipmentSlot bukkitSlot = slots[index];
             nmsSlots[index] = CraftEquipmentSlot.getNMSGroup(bukkitSlot.getGroup());
@@ -135,8 +177,8 @@ public class EnchantHandler {
     public static org.bukkit.enchantments.Enchantment registerEnchantment(EnchantInfo data) {
 
         Component component = CraftChatMessage.fromStringOrEmpty(data.getName().toLowerCase());
-        HolderSet.Named<Item> supportedItems = createItemSet("enchant_supported", data, data.getItemTarget());
-        HolderSet.Named<Item> primaryItems = createItemSet("enchant_primary", data, data.getItemTarget());
+        HolderSet.Named<Item> supportedItems = createItemsSet("enchant_supported", data.getName().toLowerCase(), data.getItemTarget());
+        HolderSet.Named<Item> primaryItems = createItemsSet("enchant_primary", data.getName().toLowerCase(), data.getItemTarget());
         int weight = 10;
         /*
         * COMMON(10),
@@ -148,10 +190,11 @@ public class EnchantHandler {
         Enchantment.Cost minCost = new Enchantment.Cost(1, 0);
         Enchantment.Cost maxCost = new Enchantment.Cost(1, 0);
         int anvilCost = 10;
-        net.minecraft.world.entity.EquipmentSlotGroup[] slots = nmsSlots(data);
+        EquipmentSlotGroup[] slots = nmsSlots(data);
 
         Enchantment.EnchantmentDefinition definition = Enchantment.definition(supportedItems, primaryItems, weight, maxLevel, minCost, maxCost, anvilCost, slots);
-        HolderSet<Enchantment> exclusiveSet = HolderSet.direct();
+
+        HolderSet<Enchantment> exclusiveSet = createExclusiveSet(data.getName().toLowerCase());
 
         Enchantment enchantment = new Enchantment(component, definition, exclusiveSet, DataComponentMap.builder().build());
 
@@ -169,10 +212,18 @@ public class EnchantHandler {
             removeFromTag(EnchantmentTags.IN_ENCHANTING_TABLE, reference); // prevent enchanting
         }
 
-        org.bukkit.enchantments.Enchantment bukkitEnchant = CraftEnchantment.minecraftToBukkit(enchantment);
-        return bukkitEnchant;
+        return CraftEnchantment.minecraftToBukkit(enchantment);
     }
 
+    @NotNull
+    private static HolderSet.Named<Enchantment> createExclusiveSet(@NotNull String enchantId) {
+        TagKey<Enchantment> customKey = getTagKey(enchantRegistery, "exclusive_set/" + enchantId);
+        List<Holder<Enchantment>> holders = new ArrayList<>();
+
+        enchantRegistery.bindTag(customKey, holders);
+
+        return getFrozenTags(enchantRegistery).get(customKey);
+    }
 
     private static void addInTag(TagKey<Enchantment> tagKey, Holder.Reference<Enchantment> reference) {
         modfiyTag(tagKey, reference, List::add);
@@ -185,7 +236,7 @@ public class EnchantHandler {
     private static void modfiyTag(TagKey<Enchantment> tagKey,
                                   Holder.Reference<Enchantment> reference,
                                   BiConsumer<List<Holder<Enchantment>>, Holder.Reference<Enchantment>> consumer) {
-        HolderSet.Named<Enchantment> holders = enchantRegistery.getTag(tagKey).orElse(null);
+        HolderSet.Named<Enchantment> holders = enchantRegistery.getOrThrow(tagKey); //.getTag(tagKey).orElse(null);
         if (holders == null) {
             Bukkit.getLogger().warning(tagKey + ": Could not modify HolderSet. HolderSet is null.");
             return;
@@ -204,10 +255,9 @@ public class EnchantHandler {
         Reflect.setFieldValue(holders, HolderSetNamedContentsField, contents);
     }
 
-    private static HolderSet.Named<Item> createItemSet(String prefix, EnchantInfo data, EnchantmentTarget enchantmentTarget) {
-        Registry<Item> items = minecraftServer.registryAccess().registry(Registries.ITEM).orElseThrow();
-        TagKey<Item> customKey = TagKey.create(Registries.ITEM, ResourceLocation.withDefaultNamespace(prefix + "/" + data.getName().toLowerCase()));
-        HolderSet.Named<Item> customItems = items.getOrCreateTag(customKey);
+    @NotNull
+    private static HolderSet.Named<Item> createItemsSet(@NotNull String prefix, @NotNull String enchantId, @NotNull EnchantmentTarget enchantmentTarget) {
+        TagKey<Item> customKey = getTagKey(itemRegistery, prefix + "/" + enchantId.toLowerCase());
         List<Holder<Item>> holders = new ArrayList<>();
 
         List<Material> materials = new ArrayList<>();
@@ -219,19 +269,15 @@ public class EnchantHandler {
 
         materials.forEach(material -> {
             ResourceLocation location = CraftNamespacedKey.toMinecraft(material.getKey());
-            Holder.Reference<Item> holder = items.getHolder(location).orElse(null);
+            Holder.Reference<Item> holder = itemRegistery.get(location).orElse(null);
             if (holder == null) return;
-
-            Set<TagKey<Item>> holderTags = new HashSet<>((Set<TagKey<Item>>) Reflect.getFieldValue(holder, holderReferenceTagField));
-            holderTags.add(customKey);
-            Reflect.setFieldValue(holder, holderReferenceTagField, holderTags);
 
             holders.add(holder);
         });
 
-        Reflect.setFieldValue(customItems, HolderSetNamedContentsField, holders);
+        itemRegistery.bindTag(customKey, holders);
 
-        return customItems;
+        return getFrozenTags(itemRegistery).get(customKey);
     }
 
     private static Set<Material> getItemsBySlot(@NotNull EquipmentSlot slot) {
@@ -244,5 +290,23 @@ public class EnchantHandler {
         return materials;
     }
 
+    private static <T> TagKey<T> getTagKey(@NotNull Registry<T> registry, @NotNull String name) {
+        return TagKey.create(registry.key(), ResourceLocation.withDefaultNamespace(name));
+    }
 
+    @NotNull
+    private static <T> Map<TagKey<T>, HolderSet.Named<T>> getFrozenTags(@NotNull MappedRegistry<T> registry) {
+        return (Map<TagKey<T>, HolderSet.Named<T>>) Reflect.getFieldValue(registry, REGISTRY_FROZEN_TAGS_FIELD);
+    }
+
+    @NotNull
+    private static <T> Object getAllTags(@NotNull MappedRegistry<T> registry) {
+        return Reflect.getFieldValue(registry, REGISTRY_ALL_TAGS_FIELD);
+    }
+
+    @NotNull
+    private static <T> Map<TagKey<T>, HolderSet.Named<T>> getTagsMap(@NotNull Object tagSet) {
+        // new HashMap, because original is ImmutableMap.
+        return new HashMap<>((Map<TagKey<T>, HolderSet.Named<T>>) Reflect.getFieldValue(tagSet, TAG_SET_MAP_FIELD));
+    }
 }
