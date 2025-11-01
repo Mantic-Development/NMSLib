@@ -20,6 +20,7 @@ import me.fullpage.nmslib.v1_20_r4.NMSLib_V1_20_R4;
 import me.fullpage.nmslib.v1_21_r1.NMSLib_V1_21_R1;
 import me.fullpage.nmslib.v1_21_r2.NMSLib_V1_21_R2;
 import me.fullpage.nmslib.v1_21_r3.NMSLib_V1_21_R3;
+import me.fullpage.nmslib.v1_21_r4.NMSLib_V1_21_R4;
 import me.fullpage.nmslib.v1_21_r8.NMSLib_V1_21_R8;
 import me.fullpage.nmslib.v1_8_r3.NMSLib_V1_8_R3;
 import org.bukkit.Bukkit;
@@ -48,6 +49,9 @@ public class NMSLib {
             }
             if (ver.equals("1.21.4")) {
                 ver = "v1_21_R3";
+            }
+            if (ver.equals("1.21.5")) {
+                ver = "v1_21_R4";
             }
             if (ver.equals("1.21.8")){
                 ver = "v1_21_R8";
@@ -117,6 +121,9 @@ public class NMSLib {
                 break;
             case v1_21_R3:
                 nmsHandler = new NMSLib_V1_21_R3();
+                break;
+            case v1_21_R4:
+                nmsHandler = new NMSLib_V1_21_R4();
                 break;
             case v1_21_R8:
                 nmsHandler = new NMSLib_V1_21_R8();
