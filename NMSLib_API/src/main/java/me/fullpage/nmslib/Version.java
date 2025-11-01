@@ -35,6 +35,7 @@ public enum Version {
     v1_21_R2,
     v1_21_R3,
     v1_21_R4,
+    v1_21_R8,
 
     UNKNOWN;
 

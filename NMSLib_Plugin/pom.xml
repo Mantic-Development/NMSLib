@@ -206,5 +206,12 @@
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>
+
+        <dependency>
+            <groupId>me.fullpage</groupId>
+            <artifactId>NMSLib_V1_21_R8</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>
