@@ -71,7 +71,7 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
 
     @Override
     public ItemStack getItemInUse(Player player) {
-        return player == null ? null : player.getItemInUse();
+        return player == null ? null : player.getActiveItem();
     }
 
     @Override
