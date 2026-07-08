@@ -110,3 +110,6 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+# paper-nms-maven-plugin cache
+.paper-nms/

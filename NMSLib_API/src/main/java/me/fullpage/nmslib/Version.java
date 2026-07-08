@@ -36,6 +36,14 @@ public enum Version {
     v1_21_R3,
     v1_21_R4,
     v1_21_R8,
+    /**
+     * Represents the 26.1, 26.1.1 and 26.1.2 versions of Minecraft
+     */
+    v26_1,
+    /**
+     * Represents the 26.2.x versions of Minecraft
+     */
+    v26_2,
 
     UNKNOWN;
 

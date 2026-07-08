@@ -93,6 +93,13 @@
             <version>1.0.18</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Newer JDKs refuse to read spigot's type annotations without netty on the classpath. -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.77.Final</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>me.fullpage</groupId>
             <artifactId>NMSLib_API</artifactId>

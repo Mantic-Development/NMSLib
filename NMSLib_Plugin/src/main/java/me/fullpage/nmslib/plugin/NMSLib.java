@@ -22,6 +22,8 @@ import me.fullpage.nmslib.v1_21_r2.NMSLib_V1_21_R2;
 import me.fullpage.nmslib.v1_21_r3.NMSLib_V1_21_R3;
 import me.fullpage.nmslib.v1_21_r4.NMSLib_V1_21_R4;
 import me.fullpage.nmslib.v1_21_r8.NMSLib_V1_21_R8;
+import me.fullpage.nmslib.v26_1.NMSLib_V26_1;
+import me.fullpage.nmslib.v26_2.NMSLib_V26_2;
 import me.fullpage.nmslib.v1_8_r3.NMSLib_V1_8_R3;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -55,6 +57,12 @@ public class NMSLib {
             }
             if (ver.equals("1.21.8")){
                 ver = "v1_21_R8";
+            }
+            if (ver.equals("26.1") || ver.startsWith("26.1.")) {
+                ver = "v26_1";
+            }
+            if (ver.equals("26.2") || ver.startsWith("26.2.")) {
+                ver = "v26_2";
             }
         } finally {
             nmsVersion = ver;
@@ -127,6 +135,12 @@ public class NMSLib {
                 break;
             case v1_21_R8:
                 nmsHandler = new NMSLib_V1_21_R8();
+                break;
+            case v26_1:
+                nmsHandler = new NMSLib_V26_1();
+                break;
+            case v26_2:
+                nmsHandler = new NMSLib_V26_2();
                 break;
             default:
                 plugin.getLogger().info("Cannot find NMS Support, fall backing to api methods. ");
