@@ -29,6 +29,8 @@ import org.bukkit.material.NetherWarts;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashMap;
 
 public final class NMSLib_V1_8_R3 implements NMSHandler {
 
@@ -133,6 +135,16 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
     }
 
 
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
+    }
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
         Enchantment e = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());

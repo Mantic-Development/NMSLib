@@ -1,4 +1,4 @@
-package me.fullpage.nmslib.v1_21_r8;
+package me.fullpage.nmslib.v1_21_r7;
 
 import io.papermc.paper.enchantments.EnchantmentRarity;
 import io.papermc.paper.registry.set.RegistryKeySet;

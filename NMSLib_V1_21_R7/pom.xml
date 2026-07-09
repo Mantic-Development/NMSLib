@@ -9,21 +9,24 @@
         <groupId>me.fullpage</groupId>
         <version>${revision}</version>
     </parent>
+
     <properties>
-        <java.version>16</java.version>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
     <version>${revision}</version>
-    <artifactId>NMSLib_V1_18_R2</artifactId>
-    <name>NMSLib_V1_18_R2</name>
+    <artifactId>NMSLib_V1_21_R7</artifactId>
+    <name>NMSLib_V1_21_R7</name>
+
     <build>
+        <defaultGoal>clean package</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -32,18 +35,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.5.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                        </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Remapping is not supported (or needed) for MC 26.1+; the runtime is Mojang-mapped. -->
+            <plugin>
+                <groupId>ca.bkaw</groupId>
+                <artifactId>paper-nms-maven-plugin</artifactId>
+                <version>1.5</version>
             </plugin>
         </plugins>
         <resources>
@@ -54,6 +60,12 @@
         </resources>
     </build>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>bytecode.space</id>
+            <url>https://repo.bytecode.space/repository/maven-public/</url>
+        </pluginRepository>
+    </pluginRepositories>
     <repositories>
         <repository>
             <id>spigotmc-repo</id>
@@ -68,28 +80,42 @@
             <name>Minecraft Libraries</name>
             <url>https://libraries.minecraft.net</url>
         </repository>
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
+        <repository>
+            <id>purpur</id>
+            <url>https://repo.purpurmc.org/snapshots</url>
+        </repository>
+        <repository>
+            <id>sonatype-oss-snapshots1</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>1.18-R0.1-SNAPSHOT</version>
-            <systemPath>${pom.basedir}/../libs/spigot-1.18.2-R0.1-SNAPSHOT.jar</systemPath>
-            <type>jar</type>
-            <optional>true</optional>
-            <scope>system</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.18.1-R0.1-SNAPSHOT</version>
+            <groupId>ca.bkaw</groupId>
+            <artifactId>paper-nms</artifactId><version>[26.1.2.build.1, 26.1.2.build.9999)</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency> <!-- https://github.com/Mojang/brigadier -->
             <groupId>com.mojang</groupId>
             <artifactId>brigadier</artifactId>
-            <version>1.0.18</version>
+            <version>1.3.10</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency> <!-- https://github.com/Mojang/DataFixerUpper -->
+            <groupId>com.mojang</groupId>
+            <artifactId>datafixerupper</artifactId>
+            <version>8.0.16</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -97,11 +123,6 @@
             <artifactId>NMSLib_API</artifactId>
             <version>${revision}</version>
             <scope>provided</scope>
-        </dependency><dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-all</artifactId>
-        <version>4.1.97.Final</version> <!-- match whatever version Spigot 1.18.2 bundles -->
-        <scope>provided</scope>
-    </dependency>
+        </dependency>
     </dependencies>
 </project>

@@ -24,6 +24,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Objects;
 
 public final class NMSLib_Fallback implements NMSHandler {
@@ -215,6 +217,16 @@ public final class NMSLib_Fallback implements NMSHandler {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
     }
 
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
+    }
     @Override
     public boolean isMainHand(PlayerInteractEvent event) {
         if (ReflectionUtils.supports(9)) {

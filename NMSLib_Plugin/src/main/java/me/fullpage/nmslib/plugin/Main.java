@@ -15,6 +15,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 public final class Main extends JavaPlugin implements NMSHandler {
 
     private NMSHandler nmsHandler;
@@ -85,6 +88,11 @@ public final class Main extends JavaPlugin implements NMSHandler {
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
+    }
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        return this.nmsHandler.registerEnchantments(enchantInfos, plugin);
     }
 
     @Override

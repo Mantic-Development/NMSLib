@@ -1,4 +1,4 @@
-package me.fullpage.nmslib.v1_21_r8;
+package me.fullpage.nmslib.v1_21_r7;
 
 import me.fullpage.manticlib.utils.RandomMaterials;
 import me.fullpage.nmslib.EnchantInfo;
@@ -10,7 +10,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.TagKey;
@@ -38,12 +38,13 @@ public class EnchantHandler {
     private static final MappedRegistry<Enchantment> enchantRegistery;
     private static final MappedRegistry<Item> itemRegistery;
 
-    private static final String HolderSetNamedContentsField = "c";
+    // The 26.x Paper runtime is Mojang-mapped, so reflection can use the real names.
+    private static final String HolderSetNamedContentsField = "contents";
 
-    private static final String REGISTRY_FROZEN_TAGS_FIELD = "j"; // frozenTags
-    private static final String REGISTRY_ALL_TAGS_FIELD    = "k"; // allTags
-    private static final String TAG_SET_UNBOUND_METHOD     = "a"; // .unbound()
-    private static final String TAG_SET_MAP_FIELD          = "a";
+    private static final String REGISTRY_FROZEN_TAGS_FIELD = "frozenTags";
+    private static final String REGISTRY_ALL_TAGS_FIELD    = "allTags";
+    private static final String TAG_SET_UNBOUND_METHOD     = "unbound";
+    private static final String TAG_SET_MAP_FIELD          = "val$tags"; // captured map of the anonymous bound TagSet
 
     static {
         minecraftServer = ((CraftServer) Bukkit.getServer()).getServer();
@@ -62,8 +63,8 @@ public class EnchantHandler {
     }
 
     private static <T> void unfreeze(@NotNull MappedRegistry<T> registry) {
-        Reflect.setFieldValue(registry, "l", false);             // MappedRegistry#frozen
-        Reflect.setFieldValue(registry, "m", new IdentityHashMap<>()); // MappedRegistry#unregisteredIntrusiveHolders
+        Reflect.setFieldValue(registry, "frozen", false);
+        Reflect.setFieldValue(registry, "unregisteredIntrusiveHolders", new IdentityHashMap<>());
     }
 
     private static <T> void freeze(@NotNull MappedRegistry<T> registry) {
@@ -85,7 +86,7 @@ public class EnchantHandler {
     }
 
     private static <T> void unbound(@NotNull MappedRegistry<T> registry) {
-        Class<?> tagSetClass = Reflect.getInnerClass(MappedRegistry.class.getName(), "a");  // TagSet for PaperMC
+        Class<?> tagSetClass = Reflect.getInnerClass(MappedRegistry.class.getName(), "TagSet");
         if (tagSetClass == null) throw new IllegalStateException("TagSet class not found!");
 
         Method unboundMethod = Reflect.getMethod(tagSetClass, TAG_SET_UNBOUND_METHOD);
@@ -212,17 +213,31 @@ public class EnchantHandler {
             removeFromTag(EnchantmentTags.IN_ENCHANTING_TABLE, reference); // prevent enchanting
         }
 
-        return CraftEnchantment.minecraftToBukkit(enchantment);
+        return CraftEnchantment.minecraftHolderToBukkit(reference);
     }
 
     @NotNull
     private static HolderSet.Named<Enchantment> createExclusiveSet(@NotNull String enchantId) {
         TagKey<Enchantment> customKey = getTagKey(enchantRegistery, "exclusive_set/" + enchantId);
-        List<Holder<Enchantment>> holders = new ArrayList<>();
 
-        enchantRegistery.bindTag(customKey, holders);
+        return bindTag(enchantRegistery, customKey, new ArrayList<>());
+    }
 
-        return getFrozenTags(enchantRegistery).get(customKey);
+    // MappedRegistry#bindTag was removed in 26.x, so we recreate it through reflection.
+    @SuppressWarnings("unchecked")
+    @NotNull
+    private static <T> HolderSet.Named<T> bindTag(@NotNull MappedRegistry<T> registry, @NotNull TagKey<T> key, @NotNull List<Holder<T>> holders) {
+        Map<TagKey<T>, HolderSet.Named<T>> frozenTags = getFrozenTags(registry);
+        HolderSet.Named<T> named = frozenTags.get(key);
+        if (named == null) {
+            Method createTag = Reflect.getMethod(MappedRegistry.class, "createTag", TagKey.class);
+            named = (HolderSet.Named<T>) Reflect.invokeMethod(createTag, registry, key);
+            frozenTags.put(key, named);
+        }
+
+        Method bind = Reflect.getMethod(HolderSet.Named.class, "bind", List.class);
+        Reflect.invokeMethod(bind, named, holders);
+        return named;
     }
 
     private static void addInTag(TagKey<Enchantment> tagKey, Holder.Reference<Enchantment> reference) {
@@ -268,16 +283,14 @@ public class EnchantHandler {
         }
 
         materials.forEach(material -> {
-            ResourceLocation location = CraftNamespacedKey.toMinecraft(material.getKey());
+            Identifier location = CraftNamespacedKey.toMinecraft(material.getKey());
             Holder.Reference<Item> holder = itemRegistery.get(location).orElse(null);
             if (holder == null) return;
 
             holders.add(holder);
         });
 
-        itemRegistery.bindTag(customKey, holders);
-
-        return getFrozenTags(itemRegistery).get(customKey);
+        return bindTag(itemRegistery, customKey, holders);
     }
 
     private static Set<Material> getItemsBySlot(@NotNull EquipmentSlot slot) {
@@ -291,7 +304,7 @@ public class EnchantHandler {
     }
 
     private static <T> TagKey<T> getTagKey(@NotNull Registry<T> registry, @NotNull String name) {
-        return TagKey.create(registry.key(), ResourceLocation.withDefaultNamespace(name));
+        return TagKey.create(registry.key(), Identifier.withDefaultNamespace(name));
     }
 
     @NotNull

@@ -11,6 +11,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
+import java.util.Collection;
+import java.util.HashMap;
+
 public interface NMSHandler {
 
     void sendActionBar(Player player, String message);
@@ -34,6 +37,8 @@ public interface NMSHandler {
     Enchantment lookupEnchantment(String name, int internalId);
 
     Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin);
+
+    HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin);
 
     @Deprecated
     boolean registerEnchantment(Enchantment enchantment);

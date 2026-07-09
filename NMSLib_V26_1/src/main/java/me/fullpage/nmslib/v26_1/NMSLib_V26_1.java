@@ -27,6 +27,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashMap;
 
 public final class NMSLib_V26_1 implements NMSHandler {
 
@@ -39,6 +41,16 @@ public final class NMSLib_V26_1 implements NMSHandler {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }
 
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
+    }
     @Override
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));

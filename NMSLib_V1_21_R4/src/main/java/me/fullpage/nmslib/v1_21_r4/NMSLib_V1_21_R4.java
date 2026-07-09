@@ -27,6 +27,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashMap;
 
 public final class NMSLib_V1_21_R4 implements NMSHandler {
 
@@ -105,6 +107,16 @@ public final class NMSLib_V1_21_R4 implements NMSHandler {
         Enchantment ench = EnchantHandler.registerEnchantment(enchantInfo);
         EnchantHandler.freezeRegistry();
         return ench;
+    }
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
     }
 
     @Override

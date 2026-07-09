@@ -32,6 +32,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 
 public final class NMSLib_V1_20_R3 implements NMSHandler {
@@ -115,6 +117,18 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
         IRegistry.a(BuiltInRegistries.f, namespacedKey.getKey(), entry);
         freezeRegistry();
         return CraftEnchantment.minecraftToBukkit(entry);
+    }
+
+
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
     }
 
     @Override

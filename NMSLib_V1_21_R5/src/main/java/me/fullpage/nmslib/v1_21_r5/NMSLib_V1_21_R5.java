@@ -1,13 +1,13 @@
-package me.fullpage.nmslib.v1_19_r3;
+package me.fullpage.nmslib.v1_21_r5;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
-import net.minecraft.world.entity.EntityInsentient;
-import net.minecraft.world.entity.EntityLiving;
-import net.minecraft.world.entity.projectile.EntityFishingHook;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.projectile.FishingHook;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -15,13 +15,9 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
-import org.bukkit.craftbukkit.v1_19_R3.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftCreature;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_19_R3.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_19_R3.util.CraftMagicNumbers;
+import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -33,10 +29,10 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 
-public final class NMSLib_V1_19_R3 implements NMSHandler {
+public final class NMSLib_V1_21_R5 implements NMSHandler {
 
-    public NMSLib_V1_19_R3() {
-        ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion(); // next version
+    public NMSLib_V1_21_R5() {
+        //((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
     }
 
     @Override
@@ -48,7 +44,6 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
     }
-
 
     @Override
     public boolean isMainHand(PlayerInteractEvent event) {
@@ -75,11 +70,9 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
         return player == null ? null : player.getInventory().getItemInMainHand();
     }
 
-
-
     @Override
     public ItemStack getItemInUse(Player player) {
-        return player == null ? null : player.getItemInUse();
+        return player == null ? null : player.getActiveItem();
     }
 
     @Override
@@ -95,6 +88,12 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
     }
 
 
+    @Override
+    public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+        NamespacedKey key = new NamespacedKey(plugin, enchantInfo.getName());
+        return new ManticApiEnchant(key, enchantInfo);
+    }
+
 
     @Override
     public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
@@ -105,86 +104,26 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
         }
         return temp;
     }
-    @Override
-    public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
-        return new org.bukkit.enchantments.Enchantment(new NamespacedKey(plugin, enchantInfo.getName())) {
-            @Override
-            public String getName() {
-                return enchantInfo.getName();
-            }
-
-            @Override
-            public int getMaxLevel() {
-                return enchantInfo.getMaxLevel();
-            }
-
-            @Override
-            public int getStartLevel() {
-                return enchantInfo.getStartLevel();
-            }
-
-            @Override
-            public EnchantmentTarget getItemTarget() {
-                return enchantInfo.getItemTarget();
-            }
-
-            @Override
-            public boolean isTreasure() {
-                return enchantInfo.isTreasure();
-            }
-
-            @Override
-            public boolean isCursed() {
-                return enchantInfo.isCursed();
-            }
-
-            @Override
-            public boolean conflictsWith(org.bukkit.enchantments.Enchantment enchantment) {
-                return enchantInfo.conflictsWith(enchantment);
-            }
-
-            @Override
-            public boolean canEnchantItem(ItemStack itemStack) {
-                return enchantInfo.canEnchantItem(itemStack);
-            }
-        };
-    }
-
 
     @Override
     public Enchantment registerEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
-        Enchantment e = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
-        if (e != null) {
-            return e;
-        }
-        try {
-            Enchantment enchantment = buildEnchantment(enchantInfo, plugin);
-            registerEnchantment(enchantment);
+        Enchantment enchantment = lookupEnchantment(enchantInfo.getName(), enchantInfo.getInternalId());
+        if (enchantment != null) {
             return enchantment;
-        } catch (Throwable t) {
-            throw new RuntimeException(t);
         }
+        EnchantHandler.unfreezeRegistry();
+
+        Enchantment ench = EnchantHandler.registerEnchantment(enchantInfo);
+        EnchantHandler.freezeRegistry();
+        return ench;
     }
-    @Override
-    public boolean isRegistered(String name, int internalId) {
-        return lookupEnchantment(name, internalId) != null;
-    }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
-        try {
-            Field f = org.bukkit.enchantments.Enchantment.class.getDeclaredField("acceptingNew");
-            f.setAccessible(true);
-            f.set(null, true);
-            f.setAccessible(false);
-            CraftEnchantment.registerEnchantment(enchantment);
-            f.setAccessible(true);
-            f.set(null, false);
-            f.setAccessible(false);
-            return true;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        throw new UnsupportedOperationException("This method is not supported in 1.20.4 and above. Use registerEnchantment(EnchantInfo, Plugin) instead.");
+
     }
+
 
     @Override
     public boolean isRegistered(org.bukkit.enchantments.Enchantment enchantment) {
@@ -194,6 +133,11 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isRegistered(String name, int internalId) {
+        return lookupEnchantment(name, internalId) != null;
     }
 
 
@@ -212,6 +156,7 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
             CaveVinesPlant caveVinesPlant = (CaveVinesPlant) blockData;
             return caveVinesPlant.isBerries();
         }
+
         if (blockData instanceof Ageable) {
             Ageable ageable = (Ageable) blockData;
             return ageable.getAge() >= ageable.getMaximumAge();
@@ -272,19 +217,21 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
         }
 
     }
+
     @Override
     public void moveTo(LivingEntity entity, Location moveTo, float speed) {
         if (entity == null || moveTo == null) {
             return;
         }
-
         CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
-        EntityLiving handle = craftEntity.getHandle();
-        if (!(handle instanceof EntityInsentient entityInsentient)) {
+        net.minecraft.world.entity.LivingEntity handle = craftEntity.getHandle();
+
+        if (!(handle instanceof PathfinderMob pathfinderMob)) {
             return;
         }
-        entityInsentient.D().a(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
+        pathfinderMob.getNavigation().moveTo(moveTo.getX(), moveTo.getY(), moveTo.getZ(), speed);
     }
+
 
     @Override
     public void stopNavigation(LivingEntity entity) {
@@ -292,11 +239,14 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
             return;
         }
 
-        // Unsure so sending to current location
-        moveTo(entity, entity.getLocation(), 1);
+        CraftLivingEntity craftEntity = (CraftLivingEntity) entity;
+        net.minecraft.world.entity.LivingEntity handle = craftEntity.getHandle();
+        if (!(handle instanceof PathfinderMob pathfinderMob)) {
+            return;
+        }
+        PathNavigation navigation = pathfinderMob.getNavigation();
+        navigation.stop();
     }
-
-
 
 
     @Override
@@ -306,9 +256,9 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
             hookEntity.setAccessible(true);
             Object object = hookEntity.get(event);
             CraftEntity craftEntity = (CraftEntity) object;
-            EntityFishingHook entityFishingHook = (EntityFishingHook) craftEntity.getHandle();
+            FishingHook entityFishingHook = (FishingHook) craftEntity.getHandle();
 
-            Field fishCatchTime = EntityFishingHook.class.getDeclaredField("k");
+            Field fishCatchTime = FishingHook.class.getDeclaredField("l"); // ignore cannot resolve, it will be remapped
             fishCatchTime.setAccessible(true);
             fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
             fishCatchTime.setAccessible(false);
@@ -316,4 +266,5 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
             e.printStackTrace();
         }
     }
+
 }

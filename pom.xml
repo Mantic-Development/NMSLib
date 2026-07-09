@@ -37,7 +37,8 @@
         <module>NMSLib_V1_21_R2</module>
         <module>NMSLib_V1_21_R3</module>
         <module>NMSLib_V1_21_R4</module>
-        <module>NMSLib_V1_21_R8</module>
+        <module>NMSLib_V1_21_R5</module>
+        <module>NMSLib_V1_21_R7</module>
         <module>NMSLib_V26_1</module>
         <module>NMSLib_V26_2</module>
         <module>NMSLib_Plugin</module>
@@ -78,7 +79,7 @@
         <dependency>
             <groupId>com.github.Mantic-Development</groupId>
             <artifactId>ManticLib</artifactId>
-            <version>1.0.43.0</version>
+            <version>1.0.50.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

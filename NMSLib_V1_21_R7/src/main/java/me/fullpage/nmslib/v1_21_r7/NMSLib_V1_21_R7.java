@@ -1,4 +1,4 @@
-package me.fullpage.nmslib.v1_21_r8;
+package me.fullpage.nmslib.v1_21_r7;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
@@ -17,7 +17,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -27,10 +26,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashMap;
 
-public final class NMSLib_V1_21_R8 implements NMSHandler {
+public final class NMSLib_V1_21_R7 implements NMSHandler {
 
-    public NMSLib_V1_21_R8() {
+    public NMSLib_V1_21_R7() {
         //((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
     }
 
@@ -39,6 +40,16 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }
 
+
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
+    }
     @Override
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
@@ -88,7 +99,7 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
 
 
     @Override
-    public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+    public Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
         NamespacedKey key = new NamespacedKey(plugin, enchantInfo.getName());
         return new ManticApiEnchant(key, enchantInfo);
     }
@@ -108,15 +119,15 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
     }
 
     @Override
-    public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
+    public boolean registerEnchantment(Enchantment enchantment) {
         throw new UnsupportedOperationException("This method is not supported in 1.20.4 and above. Use registerEnchantment(EnchantInfo, Plugin) instead.");
 
     }
 
 
     @Override
-    public boolean isRegistered(org.bukkit.enchantments.Enchantment enchantment) {
-        for (org.bukkit.enchantments.Enchantment value : Enchantment.values()) {
+    public boolean isRegistered(Enchantment enchantment) {
+        for (Enchantment value : Enchantment.values()) {
             if (value.equals(enchantment)) {
                 return true;
             }
@@ -131,7 +142,7 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
 
 
     @Override
-    public boolean isGrown(Block block, org.bukkit.block.BlockState blockState) {
+    public boolean isGrown(Block block, BlockState blockState) {
         if (block == null) {
             return true;
         }
@@ -155,7 +166,7 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
     }
 
     @Override
-    public void setCropToAdult(Block block, org.bukkit.block.BlockState blockState) {
+    public void setCropToAdult(Block block, BlockState blockState) {
         if (block == null) {
             return;
         }
@@ -247,7 +258,7 @@ public final class NMSLib_V1_21_R8 implements NMSHandler {
             CraftEntity craftEntity = (CraftEntity) object;
             FishingHook entityFishingHook = (FishingHook) craftEntity.getHandle();
 
-            Field fishCatchTime = FishingHook.class.getDeclaredField("l"); // ignore cannot resolve, it will be remapped
+            Field fishCatchTime = FishingHook.class.getDeclaredField("timeUntilLured"); // Mojang-mapped runtime, no remapping in 26.x
             fishCatchTime.setAccessible(true);
             fishCatchTime.setInt(entityFishingHook, Math.max(15, ticks));
             fishCatchTime.setAccessible(false);
