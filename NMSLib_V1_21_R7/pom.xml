@@ -97,7 +97,8 @@
     <dependencies>
         <dependency>
             <groupId>ca.bkaw</groupId>
-            <artifactId>paper-nms</artifactId><version>[26.1.2.build.1, 26.1.2.build.9999)</version>
+            <artifactId>paper-nms</artifactId>
+            <version>[26.1.2.build.1, 26.1.2.build.9999)</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

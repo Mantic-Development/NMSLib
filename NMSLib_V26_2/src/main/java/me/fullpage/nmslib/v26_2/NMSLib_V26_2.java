@@ -1,5 +1,7 @@
 package me.fullpage.nmslib.v26_2;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
@@ -8,7 +10,6 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.projectile.FishingHook;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -18,7 +19,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -30,7 +30,6 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Locale;
 
 public final class NMSLib_V26_2 implements NMSHandler {
 
@@ -80,10 +79,9 @@ public final class NMSLib_V26_2 implements NMSHandler {
 
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
-        for (Enchantment value : Enchantment.values()) {
-            if (value == null) continue;
+        for (Enchantment value : RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).stream().toArray(Enchantment[]::new)) {
             NamespacedKey key = value.getKey();
-            if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
+            if (key.getKey().equalsIgnoreCase(name) || name.equalsIgnoreCase(key.getNamespace() + ":" + key.getKey()) || name.equalsIgnoreCase("minecraft:" + key.getKey())) {
                 return value;
             }
         }

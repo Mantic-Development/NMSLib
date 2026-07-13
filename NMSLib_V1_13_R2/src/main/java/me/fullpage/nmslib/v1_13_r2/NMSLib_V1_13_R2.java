@@ -88,7 +88,7 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
         for (Enchantment value : Enchantment.values()) {
             if (value == null) continue;
             NamespacedKey key = value.getKey();
-            if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
+            if (key.getKey().equalsIgnoreCase(name) || name.equalsIgnoreCase(key.getNamespace() + ":" + key.getKey())) {
                 return value;
             }
         }
@@ -171,7 +171,7 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
         for (org.bukkit.enchantments.Enchantment value : Enchantment.values()) {
             if (value == null) continue;
             NamespacedKey key = value.getKey();
-            if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
+            if (key.getKey().equalsIgnoreCase(name) || name.equalsIgnoreCase(key.getNamespace() + ":" + key.getKey())) {
                 return true;
             }
         }

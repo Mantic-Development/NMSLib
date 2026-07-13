@@ -1,5 +1,7 @@
 package me.fullpage.nmslib.v1_21_r7;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
@@ -87,10 +89,9 @@ public final class NMSLib_V1_21_R7 implements NMSHandler {
 
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
-        for (Enchantment value : Enchantment.values()) {
-            if (value == null) continue;
+        for (Enchantment value : RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).stream().toArray(Enchantment[]::new)) {
             NamespacedKey key = value.getKey();
-            if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
+            if (key.getKey().equalsIgnoreCase(name) || name.equalsIgnoreCase(key.getNamespace() + ":" + key.getKey())) {
                 return value;
             }
         }

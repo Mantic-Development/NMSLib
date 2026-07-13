@@ -11,6 +11,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.TagKey;
@@ -19,6 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
@@ -198,9 +200,8 @@ public class EnchantHandler {
         HolderSet<Enchantment> exclusiveSet = createExclusiveSet(data.getName().toLowerCase());
 
         Enchantment enchantment = new Enchantment(component, definition, exclusiveSet, DataComponentMap.builder().build());
-
-        Holder.Reference<Enchantment> reference = enchantRegistery.createIntrusiveHolder(enchantment);
-        Registry.register(enchantRegistery, data.getName().toLowerCase(), enchantment);
+         Holder.Reference<Enchantment> reference = enchantRegistery.createIntrusiveHolder(enchantment);
+        Registry.register(enchantRegistery, NamespacedKey.minecraft(data.getName().toLowerCase()).getKey(), enchantment);
 
         if (data.isCursed()) {
             addInTag(EnchantmentTags.CURSE, reference);
@@ -215,6 +216,7 @@ public class EnchantHandler {
 
         return CraftEnchantment.minecraftHolderToBukkit(reference);
     }
+
 
 
     @NotNull

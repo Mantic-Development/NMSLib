@@ -80,7 +80,7 @@ public final class NMSLib_V1_21_R5 implements NMSHandler {
         for (Enchantment value : Enchantment.values()) {
             if (value == null) continue;
             NamespacedKey key = value.getKey();
-            if (key.getKey().equals(name) || name.equals(key.getNamespace() + ":" + key.getKey())) {
+            if (key.getKey().equalsIgnoreCase(name) || name.equalsIgnoreCase(key.getNamespace() + ":" + key.getKey())) {
                 return value;
             }
         }
