@@ -1,7 +1,6 @@
 package me.fullpage.nmslib.v1_21_r7;
 
-import io.papermc.paper.registry.RegistryAccess;
-import io.papermc.paper.registry.RegistryKey;
+import com.google.common.collect.Lists;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import net.md_5.bungee.api.ChatMessageType;
@@ -12,13 +11,14 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.projectile.FishingHook;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
-import org.bukkit.craftbukkit.entity.CraftEntity;
-import org.bukkit.craftbukkit.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_21_R7.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_21_R7.entity.CraftLivingEntity;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -42,16 +42,6 @@ public final class NMSLib_V1_21_R7 implements NMSHandler {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }
 
-
-    @Override
-    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
-        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
-        for (EnchantInfo enchantInfo : enchantInfos) {
-            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
-            temp.put(enchantInfo, enchantment);
-        }
-        return temp;
-    }
     @Override
     public void sendJsonMessage(Player player, String json) {
         player.spigot().sendMessage(ComponentSerializer.parse(json));
@@ -84,12 +74,13 @@ public final class NMSLib_V1_21_R7 implements NMSHandler {
 
     @Override
     public ItemStack getItemInUse(Player player) {
-        return player == null ? null : player.getActiveItem();
+        return player == null ? null : player.getItemInUse();
     }
 
     @Override
     public Enchantment lookupEnchantment(String name, int internalId) {
-        for (Enchantment value : RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).stream().toArray(Enchantment[]::new)) {
+        for (Enchantment value : Registry.ENCHANTMENT) {
+            if (value == null) continue;
             NamespacedKey key = value.getKey();
             if (key.getKey().equalsIgnoreCase(name) || name.equalsIgnoreCase(key.getNamespace() + ":" + key.getKey())) {
                 return value;
@@ -98,9 +89,19 @@ public final class NMSLib_V1_21_R7 implements NMSHandler {
         return null;
     }
 
+    @Override
+    public HashMap<EnchantInfo, Enchantment> registerEnchantments(Collection<EnchantInfo> enchantInfos, Plugin plugin) {
+        HashMap<EnchantInfo, Enchantment> temp = new HashMap<>();
+        for (EnchantInfo enchantInfo : enchantInfos) {
+            Enchantment enchantment = registerEnchantment(enchantInfo, plugin);
+            temp.put(enchantInfo, enchantment);
+        }
+        return temp;
+    }
+
 
     @Override
-    public Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
+    public org.bukkit.enchantments.Enchantment buildEnchantment(EnchantInfo enchantInfo, Plugin plugin) {
         NamespacedKey key = new NamespacedKey(plugin, enchantInfo.getName());
         return new ManticApiEnchant(key, enchantInfo);
     }
