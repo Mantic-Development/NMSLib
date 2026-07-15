@@ -282,46 +282,46 @@ public class EnchantHandler {
 
 
     public static org.bukkit.enchantments.Enchantment registerEnchantment(EnchantInfo data) {
+        String enchantId = data.getName().toLowerCase();
 
-        Component component = CraftChatMessage.fromStringOrEmpty(data.getName().toLowerCase());
+        Component component = CraftChatMessage.fromStringOrEmpty(data.getDisplayName());
 
-        HolderSet.Named<Item> supportedItems = createItemsSet("enchant_supported", data.getName().toLowerCase(), data.getItemTarget());
-        HolderSet.Named<Item> primaryItems = createItemsSet("enchant_primary", data.getName().toLowerCase(), data.getItemTarget());
+        HolderSet.Named<Item> supportedItems = createItemsSet("enchant_supported", enchantId, data.getItemTarget());
+        HolderSet.Named<Item> primaryItems = createItemsSet("enchant_primary", enchantId, data.getItemTarget());
+
         int weight = 10;
-        /*
-        * COMMON(10),
-          UNCOMMON(5),
-          RARE(2),
-          VERY_RARE(1);
-        * */
         int maxLevel = data.getMaxLevel();
         Enchantment.Cost minCost = new Enchantment.Cost(1, 0);
         Enchantment.Cost maxCost = new Enchantment.Cost(1, 0);
         int anvilCost = 1;
         EquipmentSlotGroup[] slots = nmsSlots(data);
 
-        Enchantment.EnchantmentDefinition definition = Enchantment.definition(supportedItems, primaryItems, weight, maxLevel, minCost, maxCost, anvilCost, slots);
+        Enchantment.EnchantmentDefinition definition =
+                Enchantment.definition(supportedItems, primaryItems, weight, maxLevel, minCost, maxCost, anvilCost, slots);
 
-        HolderSet<Enchantment> exclusiveSet = createExclusiveSet(data.getName().toLowerCase());
+        HolderSet<Enchantment> exclusiveSet = createExclusiveSet(enchantId);
 
         Enchantment enchantment = new Enchantment(component, definition, exclusiveSet, DataComponentMap.builder().build());
 
         Holder.Reference<Enchantment> reference = enchantRegistery.createIntrusiveHolder(enchantment);
-        Registry.register(enchantRegistery, data.getName().toLowerCase(), enchantment);
+        Registry.register(enchantRegistery, enchantId, enchantment);
 
         if (data.isCursed()) {
             addInTag(EnchantmentTags.CURSE, reference);
         } else {
             if (data.isTreasure()) {
                 addInTag(EnchantmentTags.TREASURE, reference);
-            } else addInTag(EnchantmentTags.NON_TREASURE, reference);
+            } else {
+                addInTag(EnchantmentTags.NON_TREASURE, reference);
+            }
 
-            removeFromTag(EnchantmentTags.TRADEABLE, reference); // prevent trading
-            removeFromTag(EnchantmentTags.IN_ENCHANTING_TABLE, reference); // prevent enchanting
+            removeFromTag(EnchantmentTags.TRADEABLE, reference);
+            removeFromTag(EnchantmentTags.IN_ENCHANTING_TABLE, reference);
         }
 
         return CraftEnchantment.minecraftHolderToBukkit(reference);
     }
+
 
     private static TagKey<Item> customItemsTag(String path) {
         return TagKey.create(itemRegistery.key(), customIdentifier(path));

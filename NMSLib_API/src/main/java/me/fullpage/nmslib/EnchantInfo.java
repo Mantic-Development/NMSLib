@@ -36,4 +36,8 @@ public abstract class EnchantInfo {
 
     public abstract boolean isCursed();
 
+    public String getDisplayName() {
+        return name;
+    }
+
 }
