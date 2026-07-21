@@ -179,7 +179,10 @@ public class EnchantHandler {
 
     public static org.bukkit.enchantments.Enchantment registerEnchantment(EnchantInfo data) {
 
-        Component component = CraftChatMessage.fromStringOrEmpty(data.getDisplayName());
+        Component component = Component.translatableWithFallback(
+                "enchantment.minecraft." + data.getName().toLowerCase(),
+                data.getDisplayName()
+        );
         HolderSet.Named<Item> supportedItems = createItemsSet("enchant_supported", data.getName().toLowerCase(), data.getItemTarget());
         HolderSet.Named<Item> primaryItems = createItemsSet("enchant_primary", data.getName().toLowerCase(), data.getItemTarget());
         int weight = 10;
