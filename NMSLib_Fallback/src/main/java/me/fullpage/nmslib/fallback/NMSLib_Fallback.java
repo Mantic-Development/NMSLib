@@ -12,12 +12,14 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -429,5 +431,20 @@ public final class NMSLib_Fallback implements NMSHandler {
 
     @Override
     public void setBiteTime(PlayerFishEvent event, int ticks) {
+    }
+
+    @Override
+    public boolean isInWater(org.bukkit.entity.Entity entity) {
+        return entity.isInWater();
+    }
+
+    @Override
+    public void setVelocity(org.bukkit.entity.Entity entity, Vector vector) {
+        entity.setVelocity(vector);
+    }
+
+    @Override
+    public Vector getVelocity(Entity entity) {
+        return entity.getVelocity();
     }
 }

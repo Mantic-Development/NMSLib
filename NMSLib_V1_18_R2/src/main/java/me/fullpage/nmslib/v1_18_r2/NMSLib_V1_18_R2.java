@@ -25,12 +25,14 @@ import org.bukkit.craftbukkit.v1_18_R2.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -317,5 +319,20 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public boolean isInWater(Entity entity) {
+        return entity.isInWater();
+    }
+
+    @Override
+    public void setVelocity(Entity entity, Vector vector) {
+        entity.setVelocity(vector);
+    }
+
+    @Override
+    public Vector getVelocity(Entity entity) {
+        return entity.getVelocity();
     }
 }

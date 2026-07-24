@@ -21,6 +21,7 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -284,5 +286,20 @@ public final class NMSLib_V1_21_R2 implements NMSHandler {
         finalStack.setItemMeta(itemMeta);
 
         return finalStack;
+    }
+
+    @Override
+    public boolean isInWater(Entity entity) {
+        return entity.isInWater();
+    }
+
+    @Override
+    public void setVelocity(Entity entity, Vector vector) {
+        entity.setVelocity(vector);
+    }
+
+    @Override
+    public Vector getVelocity(Entity entity) {
+        return entity.getVelocity();
     }
 }

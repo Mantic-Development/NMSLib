@@ -23,6 +23,7 @@ import org.bukkit.craftbukkit.v1_13_R2.util.CraftChatMessage;
 import org.bukkit.craftbukkit.v1_13_R2.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -34,6 +35,7 @@ import org.bukkit.material.Crops;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.NetherWarts;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -312,4 +314,22 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
         }
     }
 
+
+
+
+    @Override
+    public boolean isInWater(org.bukkit.entity.Entity entity) {
+        if (!(entity instanceof  CraftEntity))  return  false;
+        return ((CraftEntity)entity).getHandle().isInWater();
+    }
+
+    @Override
+    public void setVelocity(org.bukkit.entity.Entity entity, Vector vector) {
+        entity.setVelocity(vector);
+    }
+
+    @Override
+    public Vector getVelocity(Entity entity) {
+        return entity.getVelocity();
+    }
 }

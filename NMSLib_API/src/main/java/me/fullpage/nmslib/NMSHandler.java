@@ -4,12 +4,14 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -58,5 +60,11 @@ public interface NMSHandler {
     void stopNavigation(LivingEntity entity);
 
     void setBiteTime(PlayerFishEvent event, int ticks);
+
+    boolean isInWater(Entity entity);
+
+    void setVelocity(Entity entity, Vector vector);
+
+    Vector getVelocity(Entity entity);
 
 }

@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
@@ -14,6 +15,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -138,5 +140,20 @@ public final class Main extends JavaPlugin implements NMSHandler {
     @Override
     public void setBiteTime(PlayerFishEvent event, int ticks) {
         this.nmsHandler.setBiteTime(event, ticks);
+    }
+
+    @Override
+    public boolean isInWater(Entity entity) {
+        return  this.nmsHandler.isInWater(entity);
+    }
+
+    @Override
+    public void setVelocity(Entity entity, Vector vector) {
+        this.nmsHandler.setVelocity(entity, vector);
+    }
+
+    @Override
+    public Vector getVelocity(Entity entity) {
+        return this.nmsHandler.getVelocity(entity);
     }
 }
