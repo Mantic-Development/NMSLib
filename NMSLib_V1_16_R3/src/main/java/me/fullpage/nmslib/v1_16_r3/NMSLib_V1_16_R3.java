@@ -19,6 +19,7 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
@@ -298,6 +299,36 @@ public final class NMSLib_V1_16_R3 implements NMSHandler {
         }
     }
 
+    @Override
+    public boolean forceRetrieve(Player player, Entity hookEntity) {
+        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+
+        try {
+            net.minecraft.server.v1_16_R3.Entity nmsHook =
+                    ((CraftEntity) hookEntity).getHandle();
+
+            if (!(nmsHook instanceof EntityFishingHook)) return false;
+            EntityFishingHook fishingHook = (EntityFishingHook) nmsHook;
+            org.bukkit.inventory.ItemStack bukkitRod = isRodInMainHand(player)
+                    ? player.getInventory().getItemInMainHand()
+                    : player.getInventory().getItemInOffHand();
+
+            net.minecraft.server.v1_16_R3.ItemStack nmsRodStack = CraftItemStack.asNMSCopy(bukkitRod);
+
+            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
+            int xp = fishingHook.b(nmsRodStack);
+
+
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private boolean isRodInMainHand(Player player) {
+        org.bukkit.Material main = player.getInventory().getItemInMainHand().getType();
+        return main.name().contains("FISHING_ROD");
+    }
 
     @Override
     public boolean isInWater(org.bukkit.entity.Entity entity) {

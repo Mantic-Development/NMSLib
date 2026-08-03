@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.projectile.FishingHook;
@@ -20,6 +21,8 @@ import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.v1_20_R4.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_20_R4.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_20_R4.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_20_R4.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_20_R4.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_20_R4.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -311,6 +314,37 @@ public final class NMSLib_V1_20_R4 implements NMSHandler {
         }
     }
 
+
+    @Override
+    public boolean forceRetrieve(Player player, Entity hookEntity) {
+        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+
+        try {
+            net.minecraft.world.entity.Entity nmsHook =
+                    ((CraftEntity) hookEntity).getHandle();
+
+            if (!(nmsHook instanceof FishingHook fishingHook)) return false;
+
+            org.bukkit.inventory.ItemStack bukkitRod = isRodInMainHand(player)
+                    ? player.getInventory().getItemInMainHand()
+                    : player.getInventory().getItemInOffHand();
+
+            net.minecraft.world.item.ItemStack nmsRodStack = CraftItemStack.asNMSCopy(bukkitRod);
+
+            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
+            int xp = fishingHook.retrieve( nmsRodStack);
+
+
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private boolean isRodInMainHand(Player player) {
+        org.bukkit.Material main = player.getInventory().getItemInMainHand().getType();
+        return main.name().contains("FISHING_ROD");
+    }
 
     @Override
     public boolean isInWater(Entity entity) {

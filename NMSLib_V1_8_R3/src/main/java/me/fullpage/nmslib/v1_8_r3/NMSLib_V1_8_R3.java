@@ -383,6 +383,25 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
     }
 
 
+    @Override
+    public boolean forceRetrieve(Player player, Entity hookEntity) {
+        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+
+        try {
+            net.minecraft.server.v1_8_R3.Entity nmsHook =
+                    ((CraftEntity) hookEntity).getHandle();
+
+            if (!(nmsHook instanceof EntityFishingHook)) return false;
+            EntityFishingHook fishingHook = (EntityFishingHook) nmsHook;
+            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
+            int xp = fishingHook.l();
+
+
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
 
     @Override
     public boolean isInWater(org.bukkit.entity.Entity entity) {

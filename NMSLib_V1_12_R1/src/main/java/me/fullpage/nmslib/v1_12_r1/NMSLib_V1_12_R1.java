@@ -17,6 +17,7 @@ import org.bukkit.craftbukkit.v1_12_R1.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_12_R1.util.CraftChatMessage;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
@@ -396,6 +397,27 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
         }
     }
 
+
+
+    @Override
+    public boolean forceRetrieve(Player player, Entity hookEntity) {
+        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+
+        try {
+            net.minecraft.server.v1_12_R1.Entity nmsHook =
+                    ((CraftEntity) hookEntity).getHandle();
+
+            if (!(nmsHook instanceof EntityFishingHook)) return false;
+            EntityFishingHook fishingHook = (EntityFishingHook) nmsHook;
+            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
+            int xp = fishingHook.j();
+
+
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
 
     @Override
     public boolean isInWater(org.bukkit.entity.Entity entity) {

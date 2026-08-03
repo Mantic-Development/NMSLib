@@ -433,6 +433,12 @@ public final class NMSLib_Fallback implements NMSHandler {
     public void setBiteTime(PlayerFishEvent event, int ticks) {
     }
 
+
+    @Override
+    public boolean forceRetrieve(Player player, Entity hookEntity) {
+        return false;
+    }
+
     @Override
     public boolean isInWater(org.bukkit.entity.Entity entity) {
         return entity.isInWater();

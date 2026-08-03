@@ -143,6 +143,11 @@ public final class Main extends JavaPlugin implements NMSHandler {
     }
 
     @Override
+    public boolean forceRetrieve(Player player, Entity hookEntity) {
+        return  this.nmsHandler.forceRetrieve(player, hookEntity);
+    }
+
+    @Override
     public boolean isInWater(Entity entity) {
         return  this.nmsHandler.isInWater(entity);
     }

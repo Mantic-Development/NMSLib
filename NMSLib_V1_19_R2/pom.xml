@@ -94,6 +94,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>datafixerupper</artifactId>
+            <version>10.0.21</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>me.fullpage</groupId>
             <artifactId>NMSLib_API</artifactId>
             <version>${revision}</version>
