@@ -14,6 +14,7 @@ import net.minecraft.world.entity.EntityInsentient;
 import net.minecraft.world.entity.EntityLiving;
 import net.minecraft.world.entity.projectile.EntityFishingHook;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -305,41 +306,23 @@ public final class NMSLib_V1_20_R3 implements NMSHandler {
         }
     }
 
+    public void simulateRodInteraction(Player player) {
+        EntityPlayer p = ((CraftPlayer) player).getHandle();
 
-    @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+        if (!getItemInMainHand(player).getType().equals(Material.FISHING_ROD)) return;
 
-        try {
-            net.minecraft.world.entity.Entity nmsHook =
-                    ((CraftEntity) hookEntity).getHandle();
+        net.minecraft.world.item.ItemStack itemstack = p.fS().f();
 
-            if (!(nmsHook instanceof EntityFishingHook fishingHook)) return false;
+        EnumHand hand = getHand(player);
+        p.e.a(p, p.dM(), itemstack, hand);
 
-            EntityPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
-
-            // Figure out which hand is actually holding the rod
-            EnumHand hand = isRodInMainHand(player) ? EnumHand.a /* MAIN_HAND */ : EnumHand.b /* OFF_HAND */;
-
-            org.bukkit.inventory.ItemStack bukkitRod = isRodInMainHand(player)
-                    ? player.getInventory().getItemInMainHand()
-                    : player.getInventory().getItemInOffHand();
-
-            net.minecraft.world.item.ItemStack nmsRodStack = CraftItemStack.asNMSCopy(bukkitRod);
-
-            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
-            int xp = fishingHook.retrieve(hand, nmsRodStack);
-
-
-            return true;
-        } catch (Throwable t) {
-            return false;
-        }
+        p.a(hand);
     }
 
-    private boolean isRodInMainHand(Player player) {
-        org.bukkit.Material main = player.getInventory().getItemInMainHand().getType();
-        return main.name().contains("FISHING_ROD");
+    private EnumHand getHand(Player player) {
+        return getItemInMainHand(player).getType().equals(Material.FISHING_ROD) ?
+                EnumHand.a : player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD) ?
+                             EnumHand.b : null;
     }
     @Override
     public boolean isInWater(Entity entity) {

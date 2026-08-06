@@ -8,10 +8,12 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.projectile.FishingHook;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -314,36 +316,20 @@ public final class NMSLib_V1_20_R4 implements NMSHandler {
         }
     }
 
-
     @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+    public void simulateRodInteraction(Player player) {
+        ServerPlayer p = ((CraftPlayer) player).getHandle();
 
-        try {
-            net.minecraft.world.entity.Entity nmsHook =
-                    ((CraftEntity) hookEntity).getHandle();
+        InteractionHand hand = getHand(player);
+        p.gameMode.useItem(p, p.level(), p.getItemInHand(hand), hand);
 
-            if (!(nmsHook instanceof FishingHook fishingHook)) return false;
-
-            org.bukkit.inventory.ItemStack bukkitRod = isRodInMainHand(player)
-                    ? player.getInventory().getItemInMainHand()
-                    : player.getInventory().getItemInOffHand();
-
-            net.minecraft.world.item.ItemStack nmsRodStack = CraftItemStack.asNMSCopy(bukkitRod);
-
-            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
-            int xp = fishingHook.retrieve( nmsRodStack);
-
-
-            return true;
-        } catch (Throwable t) {
-            return false;
-        }
+        p.swing(hand, true);
     }
 
-    private boolean isRodInMainHand(Player player) {
-        org.bukkit.Material main = player.getInventory().getItemInMainHand().getType();
-        return main.name().contains("FISHING_ROD");
+    private InteractionHand getHand(Player player) {
+        return getItemInMainHand(player).getType().equals(Material.FISHING_ROD) ?
+                InteractionHand.MAIN_HAND : player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD) ?
+                                            InteractionHand.OFF_HAND : null;
     }
 
     @Override

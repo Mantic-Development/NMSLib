@@ -435,8 +435,8 @@ public final class NMSLib_Fallback implements NMSHandler {
 
 
     @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        return false;
+    public void simulateRodInteraction(Player player) {
+
     }
 
     @Override

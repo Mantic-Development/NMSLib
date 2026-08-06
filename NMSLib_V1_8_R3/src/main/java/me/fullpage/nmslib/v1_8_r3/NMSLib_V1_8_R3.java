@@ -21,6 +21,7 @@ import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -382,25 +383,16 @@ public final class NMSLib_V1_8_R3 implements NMSHandler {
         }
     }
 
+    public void simulateRodInteraction(Player player) {
+        EntityPlayer p = ((CraftPlayer) player).getHandle();
 
-    @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+        if (!getItemInMainHand(player).getType().equals(Material.FISHING_ROD)) return;
 
-        try {
-            net.minecraft.server.v1_8_R3.Entity nmsHook =
-                    ((CraftEntity) hookEntity).getHandle();
+        net.minecraft.server.v1_8_R3.ItemStack itemstack = p.inventory.getItemInHand();
 
-            if (!(nmsHook instanceof EntityFishingHook)) return false;
-            EntityFishingHook fishingHook = (EntityFishingHook) nmsHook;
-            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
-            int xp = fishingHook.l();
+        p.playerInteractManager.useItem(p, p.world, itemstack);
 
-
-            return true;
-        } catch (Throwable t) {
-            return false;
-        }
+        p.bw();  // swing
     }
 
     @Override

@@ -93,21 +93,34 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-        <groupId>com.mojang</groupId>
-        <artifactId>datafixerupper</artifactId>
-        <version>10.0.21</version>
-        <scope>provided</scope>
-    </dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>datafixerupper</artifactId>
+            <version>10.0.21</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>me.fullpage</groupId>
             <artifactId>NMSLib_API</artifactId>
             <version>${revision}</version>
             <scope>provided</scope>
-        </dependency><dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-all</artifactId>
-        <version>4.1.97.Final</version> <!-- match whatever version Spigot 1.18.2 bundles -->
-        <scope>provided</scope>
-    </dependency>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.97.Final</version> <!-- match whatever version Spigot 1.18.2 bundles -->
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>authlib</artifactId>
+            <version>3.11.49</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>datafixerupper</artifactId>
+            <version>4.0.26</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

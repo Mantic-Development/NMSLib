@@ -397,26 +397,23 @@ public final class NMSLib_V1_12_R1 implements NMSHandler {
         }
     }
 
+    public void simulateRodInteraction(Player player) {
+        EntityPlayer p = ((CraftPlayer) player).getHandle();
 
+        if (!getItemInMainHand(player).getType().equals(Material.FISHING_ROD)) return;
 
-    @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
+        net.minecraft.server.v1_12_R1.ItemStack itemstack = p.inventory.getItemInHand();
 
-        try {
-            net.minecraft.server.v1_12_R1.Entity nmsHook =
-                    ((CraftEntity) hookEntity).getHandle();
+        EnumHand hand = getHand(player);
+        p.playerInteractManager.a(p, p.world, itemstack, hand);
 
-            if (!(nmsHook instanceof EntityFishingHook)) return false;
-            EntityFishingHook fishingHook = (EntityFishingHook) nmsHook;
-            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
-            int xp = fishingHook.j();
+        p.a(hand);  // swing
+    }
 
-
-            return true;
-        } catch (Throwable t) {
-            return false;
-        }
+    private EnumHand getHand(Player player) {
+        return getItemInMainHand(player).getType().equals(Material.FISHING_ROD) ?
+                EnumHand.MAIN_HAND : player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD) ?
+                                     EnumHand.OFF_HAND : null;
     }
 
     @Override

@@ -315,39 +315,23 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
         }
     }
 
+    public void simulateRodInteraction(Player player) {
+        EntityPlayer p = ((CraftPlayer) player).getHandle();
 
+        if (!getItemInMainHand(player).getType().equals(Material.FISHING_ROD)) return;
 
+        net.minecraft.server.v1_13_R2.ItemStack itemstack = p.inventory.getItemInHand();
 
+        EnumHand hand = getHand(player);
+        p.playerInteractManager.a(p, p.world, itemstack, hand);
 
-    @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        if (!(hookEntity instanceof org.bukkit.entity.FishHook)) return false;
-
-        try {
-            net.minecraft.server.v1_13_R2.Entity nmsHook =
-                    ((CraftEntity) hookEntity).getHandle();
-
-            if (!(nmsHook instanceof EntityFishingHook)) return false;
-            EntityFishingHook fishingHook = (EntityFishingHook) nmsHook;
-            org.bukkit.inventory.ItemStack bukkitRod = isRodInMainHand(player)
-                    ? player.getInventory().getItemInMainHand()
-                    : player.getInventory().getItemInOffHand();
-
-            net.minecraft.server.v1_13_R2.ItemStack nmsRodStack = CraftItemStack.asNMSCopy(bukkitRod);
-
-            // This fires PlayerFishEvent(CAUGHT_FISH) through internally.
-            int xp = fishingHook.b(nmsRodStack);
-
-
-            return true;
-        } catch (Throwable t) {
-            return false;
-        }
+        p.a(hand);  // swing
     }
 
-    private boolean isRodInMainHand(Player player) {
-        org.bukkit.Material main = player.getInventory().getItemInMainHand().getType();
-        return main.name().contains("FISHING_ROD");
+    private EnumHand getHand(Player player) {
+        return getItemInMainHand(player).getType().equals(Material.FISHING_ROD) ?
+                EnumHand.MAIN_HAND : player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD) ?
+                                     EnumHand.OFF_HAND : null;
     }
 
 

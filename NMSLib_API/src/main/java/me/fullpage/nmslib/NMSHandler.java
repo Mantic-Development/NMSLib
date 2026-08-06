@@ -60,7 +60,7 @@ public interface NMSHandler {
     void stopNavigation(LivingEntity entity);
 
     void setBiteTime(PlayerFishEvent event, int ticks);
-    boolean forceRetrieve(Player player, Entity hookEntity);
+    void simulateRodInteraction(Player player);
 
     boolean isInWater(Entity entity);
 

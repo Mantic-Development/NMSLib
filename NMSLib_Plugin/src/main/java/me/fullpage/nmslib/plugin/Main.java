@@ -143,8 +143,8 @@ public final class Main extends JavaPlugin implements NMSHandler {
     }
 
     @Override
-    public boolean forceRetrieve(Player player, Entity hookEntity) {
-        return  this.nmsHandler.forceRetrieve(player, hookEntity);
+    public void simulateRodInteraction(Player player) {
+        this.nmsHandler.simulateRodInteraction(player);
     }
 
     @Override
