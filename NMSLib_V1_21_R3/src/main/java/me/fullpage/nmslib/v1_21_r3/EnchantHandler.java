@@ -1,6 +1,5 @@
 package me.fullpage.nmslib.v1_21_r3;
 
-import me.fullpage.manticlib.utils.RandomMaterials;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.Reflect;
 import net.minecraft.core.Holder;
@@ -41,9 +40,9 @@ public class EnchantHandler {
     private static final String HolderSetNamedContentsField = "c";
 
     private static final String REGISTRY_FROZEN_TAGS_FIELD = "j"; // frozenTags
-    private static final String REGISTRY_ALL_TAGS_FIELD    = "k"; // allTags
-    private static final String TAG_SET_UNBOUND_METHOD     = "a"; // .unbound()
-    private static final String TAG_SET_MAP_FIELD          = "val$map";
+    private static final String REGISTRY_ALL_TAGS_FIELD = "k"; // allTags
+    private static final String TAG_SET_UNBOUND_METHOD = "a"; // .unbound()
+    private static final String TAG_SET_MAP_FIELD = "val$map";
 
     static {
         minecraftServer = ((CraftServer) Bukkit.getServer()).getServer();
@@ -277,16 +276,6 @@ public class EnchantHandler {
         itemRegistery.bindTag(customKey, holders);
 
         return getFrozenTags(itemRegistery).get(customKey);
-    }
-
-    private static Set<Material> getItemsBySlot(@NotNull EquipmentSlot slot) {
-        Set<Material> materials = new HashSet<>();
-        RandomMaterials.getAll().forEach(material -> {
-            if (material.isItem() && material.getEquipmentSlot() == slot) {
-                materials.add(material);
-            }
-        });
-        return materials;
     }
 
     private static <T> TagKey<T> getTagKey(@NotNull Registry<T> registry, @NotNull String name) {

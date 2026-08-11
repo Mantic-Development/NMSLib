@@ -1,6 +1,5 @@
 package me.fullpage.nmslib.v1_21_r1;
 
-import me.fullpage.manticlib.utils.RandomMaterials;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.Reflect;
 import net.minecraft.core.Holder;
@@ -25,7 +24,6 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.EquipmentSlot;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -233,16 +231,5 @@ public class EnchantHandler {
 
         return customItems;
     }
-
-    private static Set<Material> getItemsBySlot(@NotNull EquipmentSlot slot) {
-        Set<Material> materials = new HashSet<>();
-        RandomMaterials.getAll().forEach(material -> {
-            if (material.isItem() && material.getEquipmentSlot() == slot) {
-                materials.add(material);
-            }
-        });
-        return materials;
-    }
-
 
 }

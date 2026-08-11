@@ -79,5 +79,11 @@
             <version>${revision}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.Mantic-Development</groupId>
+            <artifactId>ManticLib</artifactId>
+            <version>1.0.51.6</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

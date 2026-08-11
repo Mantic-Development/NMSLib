@@ -1,6 +1,5 @@
 package me.fullpage.nmslib.v1_21_r7;
 
-import me.fullpage.manticlib.utils.RandomMaterials;
 import me.fullpage.nmslib.EnchantInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -428,16 +427,6 @@ public class EnchantHandler {
             holders.add(holder);
         });
         return bindTag(itemRegistery, customKey, holders);
-    }
-
-    private static Set<Material> getItemsBySlot(@NotNull EquipmentSlot slot) {
-        Set<Material> materials = new HashSet<>();
-        RandomMaterials.getAll().forEach(material -> {
-            if (material.isItem() && material.getEquipmentSlot() == slot) {
-                materials.add(material);
-            }
-        });
-        return materials;
     }
 
     private static <T> TagKey<T> getTagKey(@NotNull Registry<T> registry, @NotNull String name) {

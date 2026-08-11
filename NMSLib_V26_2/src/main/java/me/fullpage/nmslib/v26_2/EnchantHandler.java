@@ -1,6 +1,5 @@
 package me.fullpage.nmslib.v26_2;
 
-import me.fullpage.manticlib.utils.RandomMaterials;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.Reflect;
 import net.minecraft.core.Holder;
@@ -11,7 +10,6 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.TagKey;
@@ -24,7 +22,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.CraftServer;
 import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.craftbukkit.util.CraftNamespacedKey;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.EquipmentSlot;
@@ -44,9 +41,9 @@ public class EnchantHandler {
     private static final String HolderSetNamedContentsField = "contents";
 
     private static final String REGISTRY_FROZEN_TAGS_FIELD = "frozenTags";
-    private static final String REGISTRY_ALL_TAGS_FIELD    = "allTags";
-    private static final String TAG_SET_UNBOUND_METHOD     = "unbound";
-    private static final String TAG_SET_MAP_FIELD          = "val$tags"; // captured map of the anonymous bound TagSet
+    private static final String REGISTRY_ALL_TAGS_FIELD = "allTags";
+    private static final String TAG_SET_UNBOUND_METHOD = "unbound";
+    private static final String TAG_SET_MAP_FIELD = "val$tags"; // captured map of the anonymous bound TagSet
 
     static {
         minecraftServer = ((CraftServer) Bukkit.getServer()).getServer();
@@ -203,7 +200,7 @@ public class EnchantHandler {
         HolderSet<Enchantment> exclusiveSet = createExclusiveSet(data.getName().toLowerCase());
 
         Enchantment enchantment = new Enchantment(component, definition, exclusiveSet, DataComponentMap.builder().build());
-         Holder.Reference<Enchantment> reference = enchantRegistery.createIntrusiveHolder(enchantment);
+        Holder.Reference<Enchantment> reference = enchantRegistery.createIntrusiveHolder(enchantment);
         Registry.register(enchantRegistery, NamespacedKey.minecraft(data.getName().toLowerCase()).getKey(), enchantment);
 
         if (data.isCursed()) {
@@ -219,7 +216,6 @@ public class EnchantHandler {
 
         return CraftEnchantment.minecraftHolderToBukkit(reference);
     }
-
 
 
     @NotNull
@@ -297,16 +293,6 @@ public class EnchantHandler {
         });
 
         return bindTag(itemRegistery, customKey, holders);
-    }
-
-    private static Set<Material> getItemsBySlot(@NotNull EquipmentSlot slot) {
-        Set<Material> materials = new HashSet<>();
-        RandomMaterials.getAll().forEach(material -> {
-            if (material.isItem() && material.getEquipmentSlot() == slot) {
-                materials.add(material);
-            }
-        });
-        return materials;
     }
 
     private static <T> TagKey<T> getTagKey(@NotNull Registry<T> registry, @NotNull String name) {
