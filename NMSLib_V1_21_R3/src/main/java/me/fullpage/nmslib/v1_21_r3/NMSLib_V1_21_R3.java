@@ -21,7 +21,6 @@ import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.util.CraftMagicNumbers;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -40,7 +39,7 @@ import java.util.HashMap;
 public final class NMSLib_V1_21_R3 implements NMSHandler {
 
     public NMSLib_V1_21_R3() {
-        ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
+        (CraftMagicNumbers.INSTANCE).getMappingsVersion();
     }
 
     @Override
@@ -126,6 +125,7 @@ public final class NMSLib_V1_21_R3 implements NMSHandler {
         }
         return temp;
     }
+
     @Override
     public boolean registerEnchantment(org.bukkit.enchantments.Enchantment enchantment) {
         throw new UnsupportedOperationException("This method is not supported in 1.20.4 and above. Use registerEnchantment(EnchantInfo, Plugin) instead.");
