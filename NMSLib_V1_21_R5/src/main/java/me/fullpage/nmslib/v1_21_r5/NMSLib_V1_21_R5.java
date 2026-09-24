@@ -14,10 +14,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -306,5 +308,12 @@ public final class NMSLib_V1_21_R5 implements NMSHandler {
         return getItemInMainHand(player).getType().equals(Material.FISHING_ROD) ?
                 InteractionHand.MAIN_HAND : player.getInventory().getItemInOffHand().getType().equals(Material.FISHING_ROD) ?
                                             InteractionHand.OFF_HAND : null;
+    }
+
+    @Override
+    public void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted) {
+        Stairs stairs = (Stairs) blockState.getBlockData();
+        stairs.setFacing(blockFace);
+        blockState.setBlockData(stairs);
     }
 }

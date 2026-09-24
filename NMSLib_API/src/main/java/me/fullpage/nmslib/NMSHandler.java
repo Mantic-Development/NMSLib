@@ -2,6 +2,7 @@ package me.fullpage.nmslib;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -67,5 +68,11 @@ public interface NMSHandler {
     void setVelocity(Entity entity, Vector vector);
 
     Vector getVelocity(Entity entity);
+
+    /**
+     *
+     * @apiNote inverted is for legacy versions only
+     */
+    void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted);
 
 }

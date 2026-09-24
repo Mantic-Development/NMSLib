@@ -65,6 +65,7 @@
                                     <excludes>
                                         <exclude>me/fullpage/nmslib/v26_1/**</exclude>
                                         <exclude>me/fullpage/nmslib/v26_2/**</exclude>
+                                        <exclude>me/fullpage/nmslib/v26_3/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
@@ -256,6 +257,12 @@
         <dependency>
             <groupId>me.fullpage</groupId>
             <artifactId>NMSLib_V26_2</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.fullpage</groupId>
+            <artifactId>NMSLib_V26_3</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>
         </dependency>

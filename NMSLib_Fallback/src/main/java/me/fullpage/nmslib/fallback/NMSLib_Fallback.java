@@ -7,9 +7,11 @@ import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Entity;
@@ -452,5 +454,12 @@ public final class NMSLib_Fallback implements NMSHandler {
     @Override
     public Vector getVelocity(Entity entity) {
         return entity.getVelocity();
+    }
+
+    @Override
+    public void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted) {
+        Stairs stairs = (Stairs) blockState.getBlockData();
+        stairs.setFacing(blockFace);
+        blockState.setBlockData(stairs);
     }
 }

@@ -5,6 +5,7 @@ import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -160,5 +161,10 @@ public final class Main extends JavaPlugin implements NMSHandler {
     @Override
     public Vector getVelocity(Entity entity) {
         return this.nmsHandler.getVelocity(entity);
+    }
+
+    @Override
+    public void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted) {
+        this.nmsHandler.setStairDirection(blockState, blockFace, inverted);
     }
 }

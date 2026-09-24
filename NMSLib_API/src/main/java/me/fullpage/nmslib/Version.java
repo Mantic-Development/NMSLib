@@ -45,6 +45,10 @@ public enum Version {
      * Represents the 26.2.x versions of Minecraft
      */
     v26_2,
+    /**
+     * Represents the 26.3.x versions of Minecraft
+     */
+    v26_3,
 
     UNKNOWN;
 

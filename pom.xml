@@ -41,6 +41,7 @@
         <module>NMSLib_V1_21_R7</module>
         <module>NMSLib_V26_1</module>
         <module>NMSLib_V26_2</module>
+        <module>NMSLib_V26_3</module>
         <module>NMSLib_Plugin</module>
     </modules>
 

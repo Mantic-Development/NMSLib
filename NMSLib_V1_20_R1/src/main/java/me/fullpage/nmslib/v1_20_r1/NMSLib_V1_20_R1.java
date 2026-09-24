@@ -15,10 +15,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.craftbukkit.v1_20_R1.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftEntity;
@@ -354,6 +356,13 @@ public final class NMSLib_V1_20_R1 implements NMSHandler {
     @Override
     public Vector getVelocity(Entity entity) {
         return entity.getVelocity();
+    }
+
+    @Override
+    public void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted) {
+        Stairs stairs = (Stairs) blockState.getBlockData();
+        stairs.setFacing(blockFace);
+        blockState.setBlockData(stairs);
     }
 
 }

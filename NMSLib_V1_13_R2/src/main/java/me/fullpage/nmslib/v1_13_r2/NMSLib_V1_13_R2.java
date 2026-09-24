@@ -350,4 +350,12 @@ public final class NMSLib_V1_13_R2 implements NMSHandler {
     public Vector getVelocity(Entity entity) {
         return entity.getVelocity();
     }
+
+    @Override
+    public void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted) {
+        org.bukkit.material.Stairs stairs = (org.bukkit.material.Stairs) blockState.getData();
+        stairs.setFacingDirection(blockFace);
+        stairs.setInverted(inverted);
+        blockState.setData(stairs);
+    }
 }
