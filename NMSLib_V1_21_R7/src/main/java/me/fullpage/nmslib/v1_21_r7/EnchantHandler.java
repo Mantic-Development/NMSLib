@@ -414,7 +414,7 @@ public class EnchantHandler {
 
         List<Material> materials = new ArrayList<>();
         for (Material value : Material.values()) {
-            if (enchantmentTarget.includes(value)) {
+            if (!value.isLegacy() && enchantmentTarget.includes(value)) {
                 materials.add(value);
             }
         }
