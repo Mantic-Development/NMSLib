@@ -75,4 +75,17 @@ public interface NMSHandler {
      */
     void setStairDirection(BlockState blockState, BlockFace blockFace, boolean inverted);
 
+    /**
+     * Spawns a client-only hologram. Returns its entity ID, or -1 when unsupported.
+     */
+    default int spawnPacketHologram(Player player, Location location, String text) {
+        return -1;
+    }
+
+    /**
+     * Removes client-only entities previously spawned for this player.
+     */
+    default void removePacketEntities(Player player, int... entityIds) {
+    }
+
 }

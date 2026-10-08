@@ -40,6 +40,38 @@ import java.util.HashMap;
 
 public final class NMSLib_V1_16_R3 implements NMSHandler {
     @Override
+    public int spawnPacketHologram(Player player, Location location, String text) {
+        if (player == null || location == null || location.getWorld() == null || text == null
+                || !player.isOnline() || player.getWorld() != location.getWorld()) {
+            return -1;
+        }
+        net.minecraft.server.v1_16_R3.EntityArmorStand stand =
+                new net.minecraft.server.v1_16_R3.EntityArmorStand(
+                        ((org.bukkit.craftbukkit.v1_16_R3.CraftWorld) player.getWorld()).getHandle(),
+                        location.getX(), location.getY() - 0.5, location.getZ());
+        org.bukkit.entity.ArmorStand display = (org.bukkit.entity.ArmorStand) stand.getBukkitEntity();
+        display.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0));
+        display.setCustomName(text);
+        display.setCustomNameVisible(true);
+        display.setGravity(false);
+        display.setMarker(true);
+
+        ((org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(
+                new net.minecraft.server.v1_16_R3.PacketPlayOutSpawnEntityLiving(stand));
+        return display.getEntityId();
+    }
+
+    @Override
+    public void removePacketEntities(Player player, int... entityIds) {
+        if (player == null || !player.isOnline() || entityIds == null || entityIds.length == 0) {
+            return;
+        }
+        ((org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer) player).getHandle().playerConnection.sendPacket(
+                new net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy(entityIds));
+    }
+
+    @Override
     public void sendActionBar(Player player, String message) {
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }
