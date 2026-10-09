@@ -54,24 +54,24 @@ public final class NMSLib_V1_21_R1 implements NMSHandler {
             return -1;
         }
         net.minecraft.server.level.ServerPlayer nmsPlayer = ((org.bukkit.craftbukkit.entity.CraftPlayer) player).getHandle();
-        net.minecraft.world.entity.decoration.ArmorStand stand =
-                new net.minecraft.world.entity.decoration.ArmorStand(
-                        nmsPlayer.level(), location.getX(), location.getY() - 0.5, location.getZ());
-        org.bukkit.entity.ArmorStand display = (org.bukkit.entity.ArmorStand) stand.getBukkitEntity();
-        display.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                org.bukkit.potion.PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0));
-        display.setCustomName(text);
-        display.setCustomNameVisible(true);
-        display.setGravity(false);
-        display.setMarker(true);
+        net.minecraft.world.entity.Display.TextDisplay hologram =
+                new net.minecraft.world.entity.Display.TextDisplay(
+                        net.minecraft.world.entity.EntityType.TEXT_DISPLAY, nmsPlayer.level());
+        hologram.setPos(location.getX(), location.getY(), location.getZ());
+        org.bukkit.entity.TextDisplay display = (org.bukkit.entity.TextDisplay) hologram.getBukkitEntity();
+        display.setText(text);
+        display.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
+        display.setDefaultBackground(false);
+        display.setShadowed(true);
 
+        int entityId = hologram.getId();
         nmsPlayer.connection.send(new net.minecraft.network.protocol.game.ClientboundAddEntityPacket(
-                display.getEntityId(), stand.getUUID(), location.getX(), location.getY() - 0.5, location.getZ(),
-                0.0f, 0.0f, stand.getType(), 0,
+                entityId, hologram.getUUID(), location.getX(), location.getY(), location.getZ(),
+                0.0f, 0.0f, hologram.getType(), 0,
                 net.minecraft.world.phys.Vec3.ZERO, 0.0));
         nmsPlayer.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket(
-                display.getEntityId(), stand.getEntityData().getNonDefaultValues()));
-        return display.getEntityId();
+                entityId, hologram.getEntityData().getNonDefaultValues()));
+        return entityId;
     }
 
     @Override

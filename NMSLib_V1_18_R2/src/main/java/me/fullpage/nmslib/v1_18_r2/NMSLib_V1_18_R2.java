@@ -55,17 +55,15 @@ public final class NMSLib_V1_18_R2 implements NMSHandler {
                 new net.minecraft.world.entity.decoration.EntityArmorStand(
                         ((org.bukkit.craftbukkit.v1_18_R2.CraftWorld) player.getWorld()).getHandle(),
                         location.getX(), location.getY() - 0.5, location.getZ());
-        org.bukkit.entity.ArmorStand display = (org.bukkit.entity.ArmorStand) stand.getBukkitEntity();
-        display.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                org.bukkit.potion.PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0));
-        display.setCustomName(text);
-        display.setCustomNameVisible(true);
-        display.setGravity(false);
-        display.setMarker(true);
+        stand.b(5, true);
+        stand.a(org.bukkit.craftbukkit.v1_18_R2.util.CraftChatMessage.fromStringOrNull(text));
+        stand.n(true);
+        stand.e(true);
+        stand.t(true);
 
         ((org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer) player).getHandle().b.a(
                 new net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving(stand));
-        return display.getEntityId();
+        return stand.ae();
     }
 
     @Override

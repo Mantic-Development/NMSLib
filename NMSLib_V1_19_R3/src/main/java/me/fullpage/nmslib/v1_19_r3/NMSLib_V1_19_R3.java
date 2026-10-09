@@ -54,24 +54,24 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
                 || !player.isOnline() || player.getWorld() != location.getWorld()) {
             return -1;
         }
-        net.minecraft.world.entity.decoration.EntityArmorStand stand =
-                new net.minecraft.world.entity.decoration.EntityArmorStand(
-                        ((org.bukkit.craftbukkit.v1_19_R3.CraftWorld) player.getWorld()).getHandle(),
-                        location.getX(), location.getY() - 0.5, location.getZ());
-        org.bukkit.entity.ArmorStand display = (org.bukkit.entity.ArmorStand) stand.getBukkitEntity();
-        display.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                org.bukkit.potion.PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 0));
-        display.setCustomName(text);
-        display.setCustomNameVisible(true);
-        display.setGravity(false);
-        display.setMarker(true);
+        net.minecraft.world.entity.Display.TextDisplay hologram =
+                new net.minecraft.world.entity.Display.TextDisplay(
+                        net.minecraft.world.entity.EntityTypes.aX,
+                        ((org.bukkit.craftbukkit.v1_19_R3.CraftWorld) player.getWorld()).getHandle());
+        hologram.f(location.getX(), location.getY(), location.getZ());
+        org.bukkit.entity.TextDisplay display = (org.bukkit.entity.TextDisplay) hologram.getBukkitEntity();
+        display.setText(text);
+        display.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
+        display.setDefaultBackground(false);
+        display.setShadowed(true);
 
+        int entityId = hologram.af();
         ((org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer) player).getHandle().b.a(
-                new net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity(stand));
+                new net.minecraft.network.protocol.game.PacketPlayOutSpawnEntity(hologram));
         ((org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer) player).getHandle().b.a(
                 new net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata(
-                        display.getEntityId(), stand.aj().b()));
-        return display.getEntityId();
+                        entityId, hologram.aj().b()));
+        return entityId;
     }
 
     @Override
