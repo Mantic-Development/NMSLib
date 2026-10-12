@@ -19,6 +19,21 @@ import java.util.HashMap;
 
 public interface NMSHandler {
 
+    /**
+     * Prepares a reusable client-only item model, or null when unsupported.
+     */
+    default PacketDisplay preparePacketItem(Location location, ItemStack item) { return PacketDisplay.item(location, item); }
+
+    /**
+     * Prepares reusable client-only text with in-place updates, or null when unsupported.
+     */
+    default PacketDisplay preparePacketText(Location location, String text) { return PacketDisplay.text(location, text); }
+
+    /**
+     * Sends a prepared group to one viewer, bundling it when the protocol supports bundles.
+     */
+    default void sendDisplayUpdates(Player viewer, Collection<PacketDisplay.Update> updates) { PacketDisplay.send(viewer, updates); }
+
     void sendActionBar(Player player, String message);
 
     void sendTitle(Player player, String title, String subtitle);
