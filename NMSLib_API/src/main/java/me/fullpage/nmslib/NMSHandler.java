@@ -34,6 +34,34 @@ public interface NMSHandler {
      */
     default void sendDisplayUpdates(Player viewer, Collection<PacketDisplay.Update> updates) { PacketDisplay.send(viewer, updates); }
 
+    /**
+     * Changes a loaded block with client/lighting updates, without drops or events.
+     * Callers must check protection and fire their own break event before calling.
+     * Returns false when the chunk is unloaded or the block did not change.
+     */
+    default boolean setBlock(Block block, org.bukkit.block.data.BlockData data, boolean applyPhysics) {
+        java.util.Objects.requireNonNull(data, "data");
+        if (!canChangeBlock(block) || block.getBlockData().equals(data)) return false;
+        block.setBlockData(data, applyPhysics);
+        return true;
+    }
+
+    /** Removes a loaded block without drops, XP, effects or a BlockBreakEvent. */
+    default boolean breakBlock(Block block, boolean applyPhysics) {
+        if (!canChangeBlock(block) || block.getType() == org.bukkit.Material.AIR) return false;
+        block.setType(org.bukkit.Material.AIR, applyPhysics);
+        return true;
+    }
+
+    /** Shared validation used by native implementations; never loads a chunk. */
+    static boolean canChangeBlock(Block block) {
+        java.util.Objects.requireNonNull(block, "block");
+        if (!org.bukkit.Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Block changes must run on the server thread");
+        }
+        return block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4);
+    }
+
     void sendActionBar(Player player, String message);
 
     void sendTitle(Player player, String title, String subtitle);

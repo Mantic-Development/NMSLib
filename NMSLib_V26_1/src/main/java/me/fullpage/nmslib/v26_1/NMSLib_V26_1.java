@@ -45,6 +45,32 @@ public final class NMSLib_V26_1 implements NMSHandler {
         //((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();
     }
 
+    private static final net.minecraft.world.level.block.state.BlockState AIR_STATE = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+
+    @Override
+    public boolean breakBlock(Block block, boolean applyPhysics) {
+        return setNativeBlock(block, AIR_STATE, applyPhysics);
+    }
+
+    @Override
+    public boolean setBlock(Block block, org.bukkit.block.data.BlockData data, boolean applyPhysics) {
+        java.util.Objects.requireNonNull(data, "data");
+        return setNativeBlock(block, ((org.bukkit.craftbukkit.block.data.CraftBlockData) data).getState(), applyPhysics);
+    }
+
+    private static boolean setNativeBlock(Block block, net.minecraft.world.level.block.state.BlockState state, boolean applyPhysics) {
+        java.util.Objects.requireNonNull(block, "block");
+        if (!org.bukkit.Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Block changes must run on the server thread");
+        }
+        org.bukkit.craftbukkit.block.CraftBlock nativeBlock = (org.bukkit.craftbukkit.block.CraftBlock) block;
+        net.minecraft.core.BlockPos position = nativeBlock.getPosition();
+        net.minecraft.world.level.LevelAccessor level = nativeBlock.getLevel();
+        if (!level.getMinecraftWorld().getChunkSource().isChunkLoaded(position.getX() >> 4, position.getZ() >> 4)) return false;
+        // 1042 retains client/light updates while suppressing shape updates and placement callbacks.
+        return level.setBlock(position, state, applyPhysics ? 3 : 1042);
+    }
+
     @Override
     public int spawnPacketHologram(Player player, Location location, String text) {
         if (player == null || location == null || location.getWorld() == null || text == null

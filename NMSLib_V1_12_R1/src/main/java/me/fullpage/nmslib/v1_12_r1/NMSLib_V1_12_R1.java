@@ -42,6 +42,15 @@ import java.util.HashMap;
 public final class NMSLib_V1_12_R1 implements NMSHandler {
 
     @Override
+    public boolean breakBlock(Block block, boolean applyPhysics) {
+        if (!NMSHandler.canChangeBlock(block)) return false;
+        return ((org.bukkit.craftbukkit.v1_12_R1.CraftWorld) block.getWorld()).getHandle().setTypeAndData(
+                new net.minecraft.server.v1_12_R1.BlockPosition(block.getX(), block.getY(), block.getZ()),
+                org.bukkit.craftbukkit.v1_12_R1.util.CraftMagicNumbers.getBlock(org.bukkit.Material.AIR).getBlockData(),
+                applyPhysics ? 3 : 2);
+    }
+
+    @Override
     public int spawnPacketHologram(Player player, Location location, String text) {
         if (player == null || location == null || location.getWorld() == null || text == null
                 || !player.isOnline() || player.getWorld() != location.getWorld()) {

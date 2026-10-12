@@ -48,6 +48,24 @@ public final class NMSLib_V1_19_R3 implements NMSHandler {
         ((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion(); // next version
     }
 
+    private static final org.bukkit.block.data.BlockData AIR_DATA = org.bukkit.Material.AIR.createBlockData();
+
+    @Override
+    public boolean breakBlock(Block block, boolean applyPhysics) {
+        return setBlock(block, AIR_DATA, applyPhysics);
+    }
+
+    @Override
+    public boolean setBlock(Block block, org.bukkit.block.data.BlockData data, boolean applyPhysics) {
+        java.util.Objects.requireNonNull(data, "data");
+        if (!NMSHandler.canChangeBlock(block)) return false;
+        // 1042 retains client/light updates while suppressing shape updates and placement callbacks.
+        return ((org.bukkit.craftbukkit.v1_19_R3.CraftWorld) block.getWorld()).getHandle().a(
+                ((org.bukkit.craftbukkit.v1_19_R3.block.CraftBlock) block).getPosition(),
+                ((org.bukkit.craftbukkit.v1_19_R3.block.data.CraftBlockData) data).getState(),
+                applyPhysics ? 3 : 1042);
+    }
+
     @Override
     public int spawnPacketHologram(Player player, Location location, String text) {
         if (player == null || location == null || location.getWorld() == null || text == null
