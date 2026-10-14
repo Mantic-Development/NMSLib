@@ -163,13 +163,29 @@ public interface NMSHandler {
         return false;
     }
 
-    /** Builds a client-only chunk from the source with the biomes of the loaded server chunk and its light unless the source supplies light; server thread only. */
+    /**
+     * Builds a client-only chunk from the source: every section gets the source's biome, or the loaded server chunk's biomes
+     * (plains when it is not loaded) when it is null, and light comes from the source, or from the server when no section supplies it.
+     * Callable from any thread when the source returns a non-null biome and supplies light for at least one section; otherwise
+     * server thread only, and off it throws IllegalStateException without reading server state: a null biome before any other
+     * source call, missing light right after the light calls. Throws IllegalArgumentException for an unknown biome or state id,
+     * and UnsupportedOperationException when unsupported.
+     */
     default VirtualChunk prepareChunk(org.bukkit.World world, int chunkX, int chunkZ, ChunkSource source) {
         throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
     }
 
     /** Replaces the viewer's copy of the chunk with a prepared one, skipped when the viewer is in another world; server thread only. */
     default void sendChunk(Player viewer, VirtualChunk chunk) {
+        throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
+    }
+
+    /**
+     * Sends the loaded server chunk at chunkX, chunkZ in the viewer's world to the viewer exactly as the server would (anti-xray
+     * included), replacing a virtual chunk; no-op when the chunk is not loaded or not sent to that viewer. Server thread only.
+     * Throws UnsupportedOperationException when unsupported.
+     */
+    default void resendChunk(Player viewer, int chunkX, int chunkZ) {
         throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
     }
 
@@ -183,40 +199,13 @@ public interface NMSHandler {
         return BlockStateIds.data(stateId);
     }
 
-    /** Number of state ids; every id in 0..count-1 is valid for blockData and the light tables. Throws UnsupportedOperationException when unsupported. */
-    default int blockStateCount() {
-        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
-    }
-
-    /** Light the state emits, 0..15 (vanilla getLightEmission). Throws UnsupportedOperationException when unsupported. */
-    default int lightEmission(int stateId) {
-        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
-    }
-
-    /**
-     * Light lost entering the state, 0..15 (vanilla getLightDampening): 15 for full opaque blocks, 0 for air and glass, 1 for
-     * other blocks that do not pass sky light down (leaves, water); each step costs max(1, opacity). Throws UnsupportedOperationException when unsupported.
-     */
-    default int lightOpacity(int stateId) {
-        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
-    }
-
-    /** True when sky light passes down through the state undiminished (vanilla propagatesSkylightDown). Throws UnsupportedOperationException when unsupported. */
-    default boolean propagatesSkylightDown(int stateId) {
-        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
-    }
-
-    /**
-     * Faces that stop light entering or leaving the state whatever its opacity (slabs, stairs, ...), as bits {@code 1 << i} for
-     * down, up, north, south, west, east; 0 for states not shaped for light. Throws UnsupportedOperationException when unsupported.
-     */
-    default int lightOcclusionFaces(int stateId) {
-        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
-    }
-
-    /** Current world DataVersion of the server. */
+    /** Current world DataVersion of the server. Throws UnsupportedOperationException when unsupported. */
     default int dataVersion() {
-        return org.bukkit.Bukkit.getUnsafe().getDataVersion();
+        try {
+            return org.bukkit.Bukkit.getUnsafe().getDataVersion();
+        } catch (NoSuchMethodError e) {
+            throw new UnsupportedOperationException("Data versions are not supported on this server version");
+        }
     }
 
     /**

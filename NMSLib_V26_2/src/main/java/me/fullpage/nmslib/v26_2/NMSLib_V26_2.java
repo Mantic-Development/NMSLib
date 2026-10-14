@@ -128,6 +128,11 @@ public final class NMSLib_V26_2 implements NMSHandler {
     }
 
     @Override
+    public void resendChunk(Player viewer, int chunkX, int chunkZ) {
+        VirtualChunks.resend(viewer, chunkX, chunkZ);
+    }
+
+    @Override
     public int blockStateId(BlockData data) {
         return net.minecraft.world.level.block.Block.getId(((org.bukkit.craftbukkit.block.data.CraftBlockData) java.util.Objects.requireNonNull(data, "data")).getState());
     }
@@ -135,31 +140,6 @@ public final class NMSLib_V26_2 implements NMSHandler {
     @Override
     public BlockData blockData(int stateId) {
         return state(stateId).asBlockData();
-    }
-
-    @Override
-    public int blockStateCount() {
-        return net.minecraft.world.level.block.Block.BLOCK_STATE_REGISTRY.size();
-    }
-
-    @Override
-    public int lightEmission(int stateId) {
-        return LightTables.EMISSION[stateId];
-    }
-
-    @Override
-    public int lightOpacity(int stateId) {
-        return LightTables.OPACITY[stateId];
-    }
-
-    @Override
-    public boolean propagatesSkylightDown(int stateId) {
-        return LightTables.SKYLIGHT_DOWN[stateId];
-    }
-
-    @Override
-    public int lightOcclusionFaces(int stateId) {
-        return LightTables.OCCLUSION_FACES[stateId];
     }
 
     @Override

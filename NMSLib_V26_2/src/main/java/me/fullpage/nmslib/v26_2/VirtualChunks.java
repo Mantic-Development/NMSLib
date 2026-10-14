@@ -1,12 +1,15 @@
 package me.fullpage.nmslib.v26_2;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.papermc.paper.FeatureHooks;
 import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
@@ -47,11 +50,17 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 final class VirtualChunks {
 
     private static final int AIR_ID = Block.getId(Blocks.AIR.defaultBlockState());
+    private static final String DEFAULT_BIOME = "minecraft:plains";
+    // Single-value containers are never written after construction, so one per biome serves every chunk and thread.
+    private static final Map<BiomeKey, PalettedContainer<Holder<Biome>>> BIOMES = new ConcurrentHashMap<>();
     private static final EnumSet<Heightmap.Types> CLIENT_HEIGHTMAPS = EnumSet.noneOf(Heightmap.Types.class);
     // Shared and never mutated: the light packet only calls isEmpty() and copy() on supplied layers.
     private static final DataLayer EMPTY_LIGHT = new DataLayer();
@@ -77,6 +86,9 @@ final class VirtualChunks {
     private VirtualChunks() {
     }
 
+    private record BiomeKey(RegistryAccess registries, String biome) {
+    }
+
     // The packet serializes blocks and copies light in its constructor, so one instance can go to any number of channels.
     private record Prepared(int chunkX, int chunkZ, ResourceKey<Level> dimension,
                             ClientboundLevelChunkWithLightPacket packet) implements VirtualChunk {
@@ -85,11 +97,13 @@ final class VirtualChunks {
     static VirtualChunk prepare(World world, int chunkX, int chunkZ, ChunkSource source) {
         Objects.requireNonNull(world, "world");
         Objects.requireNonNull(source, "source");
-        checkThread();
+        String biome = source.biome();
+        boolean serverThread = Bukkit.isPrimaryThread();
+        if (biome == null && !serverThread) throw new IllegalStateException("A null ChunkSource.biome() needs the server thread");
         ServerLevel level = ((CraftWorld) world).getHandle();
-        // Biomes, and light unless the source supplies it, come from the server's chunk.
-        LevelChunk real = level.getChunkIfLoaded(chunkX, chunkZ);
-        PalettedContainerFactory containers = PalettedContainerFactory.create(level.registryAccess());
+        LevelChunk real = biome == null ? level.getChunkIfLoaded(chunkX, chunkZ) : null;
+        PalettedContainer<Holder<Biome>> fixedBiomes = real == null ? sharedBiomes(level, biome == null ? DEFAULT_BIOME : biome) : null;
+        PalettedContainerFactory containers = level.palettedContainerFactory();
         int minSectionY = level.getMinSectionY();
         LevelChunkSection[] sections = new LevelChunkSection[level.getSectionsCount()];
         int[] scratch = new int[4096];
@@ -97,10 +111,11 @@ final class VirtualChunks {
             PalettedContainer<BlockState> states = containers.createForBlockStates();
             if (source.section(minSectionY + i, scratch)) fill(states, scratch);
             // Shared, never written: the section constructor and the packet only read biomes.
-            PalettedContainer<Holder<Biome>> biomes = real != null
-                    ? (PalettedContainer<Holder<Biome>>) real.getSection(i).getBiomes() : containers.createForBiomes();
+            PalettedContainer<Holder<Biome>> biomes = fixedBiomes != null
+                    ? fixedBiomes : (PalettedContainer<Holder<Biome>>) real.getSection(i).getBiomes();
             sections[i] = new LevelChunkSection(states, biomes); // counts blocks once
         }
+        // Detached: the constructor only reads immutable level fields, so it is safe off the server thread.
         LevelChunk chunk = new LevelChunk(level, new ChunkPos(chunkX, chunkZ), UpgradeData.EMPTY,
                 new LevelChunkTicks<>(), new LevelChunkTicks<>(), 0L, sections, null, null);
         Heightmap.primeHeightmaps(chunk, CLIENT_HEIGHTMAPS);
@@ -108,12 +123,42 @@ final class VirtualChunks {
         source.blockEntities((x, y, z, snbt) -> {
             if (!addBlockEntity(level, chunk, x, y, z, snbt)) skipped[0]++;
         });
+        LevelLightEngine light = light(level, source, serverThread);
+        ClientboundLevelChunkWithLightPacket packet;
+        try {
+            // modifyBlocks=false skips anti-xray, which marks the packet ready in the constructor.
+            packet = new ClientboundLevelChunkWithLightPacket(chunk, light, null, null, false);
+        } catch (RuntimeException e) {
+            // Rare: drop block entities whose update tag throws and rebuild once, instead of a test serialization per entity.
+            Map<BlockPos, BlockEntity> blockEntities = chunk.getBlockEntities();
+            int before = blockEntities.size();
+            blockEntities.values().removeIf(blockEntity -> !hasUpdateTag(level, blockEntity));
+            if (blockEntities.size() == before) throw e;
+            skipped[0] += before - blockEntities.size();
+            packet = new ClientboundLevelChunkWithLightPacket(chunk, light, null, null, false);
+        }
         if (skipped[0] > 0) {
             Bukkit.getLogger().warning("[NMSLib] Skipped " + skipped[0] + " invalid block entities in virtual chunk " + chunkX + ", " + chunkZ);
         }
-        // modifyBlocks=false skips anti-xray, which marks the packet ready in the constructor.
-        return new Prepared(chunkX, chunkZ, level.dimension(),
-                new ClientboundLevelChunkWithLightPacket(chunk, light(level, source), null, null, false));
+        return new Prepared(chunkX, chunkZ, level.dimension(), packet);
+    }
+
+    private static PalettedContainer<Holder<Biome>> sharedBiomes(ServerLevel level, String biome) {
+        return BIOMES.computeIfAbsent(new BiomeKey(level.registryAccess(), biome), key -> {
+            Identifier id = Identifier.tryParse(biome);
+            Holder<Biome> holder = id == null ? null : key.registries().lookupOrThrow(Registries.BIOME).get(id).orElse(null);
+            if (holder == null) throw new IllegalArgumentException("Unknown biome " + biome);
+            return new PalettedContainer<>(holder, level.palettedContainerFactory().biomeStrategy(), null);
+        });
+    }
+
+    private static boolean hasUpdateTag(ServerLevel level, BlockEntity blockEntity) {
+        try {
+            blockEntity.getUpdateTag(level.registryAccess());
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     private static void fill(PalettedContainer<BlockState> states, int[] ids) {
@@ -134,6 +179,8 @@ final class VirtualChunks {
     private static boolean addBlockEntity(ServerLevel level, LevelChunk chunk, int x, int y, int z, String snbt) {
         if (snbt == null || x >> 4 != chunk.getPos().x() || z >> 4 != chunk.getPos().z() || level.isOutsideBuildHeight(y)) return false;
         BlockPos pos = new BlockPos(x, y, z);
+        // First wins: replacing calls setRemoved on the previous entity, which fires game and Bukkit events on the real level.
+        if (chunk.getBlockEntities().containsKey(pos)) return false;
         BlockState state = chunk.getBlockState(pos);
         if (!(state.getBlock() instanceof EntityBlock block)) return false;
         try {
@@ -150,10 +197,10 @@ final class VirtualChunks {
         }
     }
 
-    private static LevelLightEngine light(ServerLevel level, ChunkSource source) {
-        LevelLightEngine server = level.getLightEngine();
-        int minSection = server.getMinLightSection();
-        DataLayer[] sky = new DataLayer[server.getLightSectionCount()], block = new DataLayer[sky.length];
+    private static LevelLightEngine light(ServerLevel level, ChunkSource source, boolean serverThread) {
+        // Same bounds as LevelLightEngine, without touching the server's engine.
+        int minSection = level.getMinSectionY() - 1;
+        DataLayer[] sky = new DataLayer[level.getSectionsCount() + 2], block = new DataLayer[sky.length];
         byte[] skyScratch = new byte[DataLayer.SIZE], blockScratch = new byte[DataLayer.SIZE];
         boolean hasSky = level.dimensionType().hasSkyLight(), supplied = false;
         for (int i = 0; i < sky.length; i++) {
@@ -165,7 +212,9 @@ final class VirtualChunks {
             sky[i] = !hasSky ? null : filled ? layer(skyScratch) : EMPTY_LIGHT;
             block[i] = filled ? layer(blockScratch) : EMPTY_LIGHT;
         }
-        return supplied ? new SuppliedLight(new Layer(minSection, sky), new Layer(minSection, block)) : server;
+        if (supplied) return new SuppliedLight(new Layer(minSection, sky), new Layer(minSection, block));
+        if (!serverThread) throw new IllegalStateException("A ChunkSource without supplied light needs the server thread");
+        return level.getLightEngine();
     }
 
     private static DataLayer layer(byte[] nibbles) {
@@ -252,7 +301,18 @@ final class VirtualChunks {
         player.connection.send(prepared.packet);
     }
 
+    static void resend(Player viewer, int chunkX, int chunkZ) {
+        Objects.requireNonNull(viewer, "viewer");
+        checkThread();
+        ServerPlayer player = ((CraftPlayer) viewer).getHandle();
+        ServerLevel level = player.level();
+        LevelChunk chunk = level.getChunkIfLoaded(chunkX, chunkZ);
+        if (chunk == null || !level.moonrise$getPlayerChunkLoader().isChunkSent(player, chunkX, chunkZ)) return;
+        // The server's own refresh path (CraftWorld.refreshChunk): anti-xray per viewer and server light, no PlayerChunkLoadEvent.
+        FeatureHooks.sendChunkRefreshPackets(List.of(player), chunk);
+    }
+
     private static void checkThread() {
-        if (!Bukkit.isPrimaryThread()) throw new IllegalStateException("Virtual chunks must be used on the server thread");
+        if (!Bukkit.isPrimaryThread()) throw new IllegalStateException("Virtual chunks must be sent on the server thread");
     }
 }

@@ -1,20 +1,17 @@
 package me.fullpage.nmslib.v26_2;
 
+import ca.spottedleaf.dataconverter.minecraft.MCDataConverter;
+import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.Dynamic;
 import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.util.datafix.DataFixers;
-import net.minecraft.util.datafix.fixes.References;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-/** DataFixer upgrades; DFU and the SNBT parser are thread-safe, so these run on any thread. */
+/** Paper's DataConverter upgrades; the server runs it concurrently on chunk loader threads, so these run on any thread. */
 final class DataUpgrades {
 
     private DataUpgrades() {
@@ -42,10 +39,12 @@ final class DataUpgrades {
             state.put("Properties", properties);
         }
         try {
-            Dynamic<Tag> fixed = DataFixers.getDataFixer().update(References.BLOCK_STATE, new Dynamic<>(NbtOps.INSTANCE, state), fromDataVersion, to);
+            CompoundTag fixed = MCDataConverter.convertTag(MCTypeRegistry.BLOCK_STATE, state, fromDataVersion, to);
+            CompoundTag fixedProperties = fixed.getCompoundOrEmpty("Properties");
             // Sorted by name like vanilla BlockState strings.
-            Map<String, String> properties = new TreeMap<>(fixed.get("Properties").asMap(key -> key.asString(""), value -> value.asString("")));
-            StringBuilder out = new StringBuilder(fixed.get("Name").asString(name));
+            Map<String, String> properties = new TreeMap<>();
+            for (String key : fixedProperties.keySet()) properties.put(key, fixedProperties.getStringOr(key, ""));
+            StringBuilder out = new StringBuilder(fixed.getStringOr("Name", name));
             if (properties.isEmpty()) return out.toString();
             char separator = '[';
             for (Map.Entry<String, String> property : properties.entrySet()) {
@@ -63,8 +62,10 @@ final class DataUpgrades {
         int to = current();
         if (fromDataVersion >= to) return snbt;
         try {
-            Dynamic<Tag> tag = new Dynamic<>(NbtOps.INSTANCE, TagParser.parseCompoundFully(snbt));
-            return DataFixers.getDataFixer().update(References.BLOCK_ENTITY, tag, fromDataVersion, to).getValue().toString();
+            CompoundTag tag = TagParser.parseCompoundFully(snbt);
+            // Structure converters would still touch a compound without an id, which the contract returns unchanged.
+            if (tag.getStringOr("id", null) == null) return snbt;
+            return MCDataConverter.convertTag(MCTypeRegistry.TILE_ENTITY, tag, fromDataVersion, to).toString();
         } catch (CommandSyntaxException | RuntimeException e) {
             return snbt;
         }
