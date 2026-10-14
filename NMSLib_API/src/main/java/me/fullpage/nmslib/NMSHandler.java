@@ -158,7 +158,7 @@ public interface NMSHandler {
     default void removePacketListeners(Plugin owner) {
     }
 
-    /** True when prepareChunk and sendChunk are implemented natively. */
+    /** True when prepareChunk, sendChunk and resendChunk are implemented natively. */
     default boolean supportsVirtualChunks() {
         return false;
     }

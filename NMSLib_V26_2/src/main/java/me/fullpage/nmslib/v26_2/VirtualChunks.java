@@ -64,7 +64,7 @@ final class VirtualChunks {
     private static final EnumSet<Heightmap.Types> CLIENT_HEIGHTMAPS = EnumSet.noneOf(Heightmap.Types.class);
     // Shared and never mutated: the light packet only calls isEmpty() and copy() on supplied layers.
     private static final DataLayer EMPTY_LIGHT = new DataLayer();
-    private static final DataLayer FULL_LIGHT = new DataLayer(15);
+    private static final DataLayer FULL_LIGHT = new SharedLayer(new DataLayer(15).getData());
     private static final LightChunkGetter NO_CHUNKS = new LightChunkGetter() {
         @Override
         public LightChunk getChunkForLighting(int x, int z) {
@@ -224,7 +224,19 @@ final class VirtualChunks {
             while (i < nibbles.length && nibbles[i] == first) i++;
             if (i == nibbles.length) return first == 0 ? EMPTY_LIGHT : FULL_LIGHT;
         }
-        return new DataLayer(nibbles.clone());
+        return new SharedLayer(nibbles.clone());
+    }
+
+    // The light packet stores copy().getData(); returning itself lets every packet built from a layer share one array.
+    private static final class SharedLayer extends DataLayer {
+        SharedLayer(byte[] data) {
+            super(data);
+        }
+
+        @Override
+        public DataLayer copy() {
+            return this;
+        }
     }
 
     // Feeds supplied light through the vanilla light data constructor, so masks and wire format stay vanilla.
