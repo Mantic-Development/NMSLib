@@ -10,13 +10,17 @@ import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.papermc.paper.util.IntervalledCounter;
 import me.fullpage.nmslib.packet.DigAction;
 import me.fullpage.nmslib.packet.DigListener;
+import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.kyori.adventure.key.Key;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.HandlerNames;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -33,24 +37,31 @@ final class PacketInjector {
     private static final Key KEY = Key.key("manticlib", "packets");
     private static final Entry[] NONE = new Entry[0];
 
-    private static volatile Entry[] entries = NONE;
+    private static volatile Entry[] digs = NONE;
+    private static volatile Entry[] uses = NONE;
     private static boolean installed; // server thread only
 
-    private record Entry(Plugin owner, DigListener listener) {
+    private record Entry(Plugin owner, Object listener) {
     }
 
     private PacketInjector() {
     }
 
     static AutoCloseable add(Plugin owner, DigListener listener) {
+        return add(owner, listener, true);
+    }
+
+    static AutoCloseable add(Plugin owner, UseItemOnListener listener) {
+        return add(owner, listener, false);
+    }
+
+    private static AutoCloseable add(Plugin owner, Object listener, boolean dig) {
         Objects.requireNonNull(owner, "owner");
         Objects.requireNonNull(listener, "listener");
         Entry added = new Entry(owner, listener);
         synchronized (PacketInjector.class) {
-            Entry[] current = entries;
-            Entry[] next = Arrays.copyOf(current, current.length + 1);
-            next[current.length] = added;
-            entries = next;
+            if (dig) digs = with(digs, added);
+            else uses = with(uses, added);
         }
         install(owner);
         return () -> remove(entry -> entry == added);
@@ -62,14 +73,24 @@ final class PacketInjector {
 
     private static void remove(Predicate<Entry> match) {
         synchronized (PacketInjector.class) {
-            Entry[] current = entries;
-            int kept = 0;
-            Entry[] next = new Entry[current.length];
-            for (Entry entry : current) {
-                if (!match.test(entry)) next[kept++] = entry;
-            }
-            if (kept != current.length) entries = kept == 0 ? NONE : Arrays.copyOf(next, kept);
+            digs = without(digs, match);
+            uses = without(uses, match);
         }
+    }
+
+    private static Entry[] with(Entry[] current, Entry added) {
+        Entry[] next = Arrays.copyOf(current, current.length + 1);
+        next[current.length] = added;
+        return next;
+    }
+
+    private static Entry[] without(Entry[] current, Predicate<Entry> match) {
+        int kept = 0;
+        Entry[] next = new Entry[current.length];
+        for (Entry entry : current) {
+            if (!match.test(entry)) next[kept++] = entry;
+        }
+        return kept == current.length ? current : kept == 0 ? NONE : Arrays.copyOf(next, kept);
     }
 
     // Installed once, never removed: Paper iterates its plain LinkedHashMap on netty threads; empty entries make the handler a pass-through.
@@ -117,11 +138,10 @@ final class PacketInjector {
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            Entry[] current = entries;
-            if (current.length == 0 || msg.getClass() != ServerboundPlayerActionPacket.class || flooding
-                    || !dispatch(current, (ServerboundPlayerActionPacket) msg) || !countDrop()) {
-                ctx.fireChannelRead(msg);
-            }
+            Class<?> type = msg.getClass();
+            boolean drop = !flooding && (type == ServerboundPlayerActionPacket.class ? dig((ServerboundPlayerActionPacket) msg)
+                    : type == ServerboundUseItemOnPacket.class && useItemOn((ServerboundUseItemOnPacket) msg));
+            if (!drop || !countDrop()) ctx.fireChannelRead(msg);
         }
 
         // Dropped packets never reach Paper's limiter, so count them here; past the limit everything is forwarded and Paper kicks.
@@ -135,7 +155,9 @@ final class PacketInjector {
             return false;
         }
 
-        private boolean dispatch(Entry[] current, ServerboundPlayerActionPacket packet) {
+        private boolean dig(ServerboundPlayerActionPacket packet) {
+            Entry[] current = digs;
+            if (current.length == 0) return false;
             DigAction action = switch (packet.getAction()) {
                 case START_DESTROY_BLOCK -> DigAction.START;
                 case ABORT_DESTROY_BLOCK -> DigAction.ABORT;
@@ -150,9 +172,29 @@ final class PacketInjector {
             boolean drop = false;
             for (Entry entry : current) {
                 try {
-                    drop |= entry.listener.onDig(player, action, x, y, z, face, sequence);
+                    drop |= ((DigListener) entry.listener).onDig(player, action, x, y, z, face, sequence);
                 } catch (Throwable t) {
                     entry.owner.getLogger().log(Level.SEVERE, "Dig listener failed", t);
+                }
+            }
+            return drop;
+        }
+
+        private boolean useItemOn(ServerboundUseItemOnPacket packet) {
+            Entry[] current = uses;
+            if (current.length == 0 || !(connection.getPacketListener() instanceof ServerGamePacketListenerImpl listener)) return false;
+            Player player = listener.player.getBukkitEntity();
+            BlockHitResult hit = packet.getHitResult();
+            BlockPos pos = hit.getBlockPos();
+            int x = pos.getX(), y = pos.getY(), z = pos.getZ();
+            int face = hit.getDirection().get3DDataValue(), sequence = packet.getSequence();
+            boolean mainHand = packet.getHand() == InteractionHand.MAIN_HAND;
+            boolean drop = false;
+            for (Entry entry : current) {
+                try {
+                    drop |= ((UseItemOnListener) entry.listener).onUseItemOn(player, x, y, z, face, sequence, mainHand);
+                } catch (Throwable t) {
+                    entry.owner.getLogger().log(Level.SEVERE, "Use-item-on listener failed", t);
                 }
             }
             return drop;

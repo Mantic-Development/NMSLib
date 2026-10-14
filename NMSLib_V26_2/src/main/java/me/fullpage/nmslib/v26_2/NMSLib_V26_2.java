@@ -4,7 +4,10 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
+import me.fullpage.nmslib.chunk.ChunkSource;
+import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
+import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -100,8 +103,28 @@ public final class NMSLib_V26_2 implements NMSHandler {
     }
 
     @Override
+    public AutoCloseable addUseItemOnListener(Plugin owner, UseItemOnListener listener) {
+        return PacketInjector.add(owner, listener);
+    }
+
+    @Override
     public void removePacketListeners(Plugin owner) {
         PacketInjector.remove(owner);
+    }
+
+    @Override
+    public boolean supportsVirtualChunks() {
+        return true;
+    }
+
+    @Override
+    public VirtualChunk prepareChunk(org.bukkit.World world, int chunkX, int chunkZ, ChunkSource source) {
+        return VirtualChunks.prepare(world, chunkX, chunkZ, source);
+    }
+
+    @Override
+    public void sendChunk(Player viewer, VirtualChunk chunk) {
+        VirtualChunks.send(viewer, chunk);
     }
 
     @Override

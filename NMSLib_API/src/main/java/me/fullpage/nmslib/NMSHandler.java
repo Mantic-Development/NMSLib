@@ -1,6 +1,9 @@
 package me.fullpage.nmslib;
 
+import me.fullpage.nmslib.chunk.ChunkSource;
+import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
+import me.fullpage.nmslib.packet.UseItemOnListener;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -132,7 +135,7 @@ public interface NMSHandler {
     default void removePacketEntities(Player player, int... entityIds) {
     }
 
-    /** True when addDigListener is implemented natively. */
+    /** True when addDigListener and addUseItemOnListener are implemented natively. */
     default boolean supportsPacketListeners() {
         return false;
     }
@@ -146,8 +149,28 @@ public interface NMSHandler {
         throw new UnsupportedOperationException("Packet listeners are not supported on this server version");
     }
 
+    /** Registers a use-item-on listener; close the handle to remove just this listener. Throws UnsupportedOperationException when unsupported. */
+    default AutoCloseable addUseItemOnListener(Plugin owner, UseItemOnListener listener) {
+        throw new UnsupportedOperationException("Packet listeners are not supported on this server version");
+    }
+
     /** Removes every packet listener registered by the plugin. */
     default void removePacketListeners(Plugin owner) {
+    }
+
+    /** True when prepareChunk and sendChunk are implemented natively. */
+    default boolean supportsVirtualChunks() {
+        return false;
+    }
+
+    /** Builds a client-only chunk from the source with the light and biomes of the loaded server chunk there; server thread only. */
+    default VirtualChunk prepareChunk(org.bukkit.World world, int chunkX, int chunkZ, ChunkSource source) {
+        throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
+    }
+
+    /** Replaces the viewer's copy of the chunk with a prepared one, skipped when the viewer is in another world; server thread only. */
+    default void sendChunk(Player viewer, VirtualChunk chunk) {
+        throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
     }
 
     /** Returns an opaque state id, valid for this server run. */
