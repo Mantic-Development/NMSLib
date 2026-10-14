@@ -137,8 +137,12 @@ public interface NMSHandler {
         return false;
     }
 
-    /** Registers a dig listener owned by the plugin; throws UnsupportedOperationException when unsupported. */
-    default void addDigListener(Plugin owner, DigListener listener) {
+    /**
+     * Registers a dig listener; close the handle to remove just this listener. Listeners that drop packets skip
+     * vanilla reach and loaded-chunk checks, so they must validate the position themselves.
+     * Throws UnsupportedOperationException when unsupported.
+     */
+    default AutoCloseable addDigListener(Plugin owner, DigListener listener) {
         throw new UnsupportedOperationException("Packet listeners are not supported on this server version");
     }
 

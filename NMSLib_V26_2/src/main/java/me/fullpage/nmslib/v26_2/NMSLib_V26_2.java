@@ -95,8 +95,8 @@ public final class NMSLib_V26_2 implements NMSHandler {
     }
 
     @Override
-    public void addDigListener(Plugin owner, DigListener listener) {
-        PacketInjector.add(owner, listener);
+    public AutoCloseable addDigListener(Plugin owner, DigListener listener) {
+        return PacketInjector.add(owner, listener);
     }
 
     @Override

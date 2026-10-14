@@ -1,10 +1,13 @@
 package me.fullpage.nmslib.v26_2;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
+import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
+import io.papermc.paper.util.IntervalledCounter;
 import me.fullpage.nmslib.packet.DigAction;
 import me.fullpage.nmslib.packet.DigListener;
 import net.kyori.adventure.key.Key;
@@ -21,6 +24,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 
 final class PacketInjector {
@@ -38,45 +42,44 @@ final class PacketInjector {
     private PacketInjector() {
     }
 
-    static void add(Plugin owner, DigListener listener) {
+    static AutoCloseable add(Plugin owner, DigListener listener) {
         Objects.requireNonNull(owner, "owner");
         Objects.requireNonNull(listener, "listener");
+        Entry added = new Entry(owner, listener);
         synchronized (PacketInjector.class) {
             Entry[] current = entries;
             Entry[] next = Arrays.copyOf(current, current.length + 1);
-            next[current.length] = new Entry(owner, listener);
+            next[current.length] = added;
             entries = next;
         }
-        sync(owner);
+        install(owner);
+        return () -> remove(entry -> entry == added);
     }
 
     static void remove(Plugin owner) {
+        remove(entry -> entry.owner == owner);
+    }
+
+    private static void remove(Predicate<Entry> match) {
         synchronized (PacketInjector.class) {
             Entry[] current = entries;
             int kept = 0;
             Entry[] next = new Entry[current.length];
             for (Entry entry : current) {
-                if (entry.owner != owner) next[kept++] = entry;
+                if (!match.test(entry)) next[kept++] = entry;
             }
-            if (kept == current.length) return;
-            entries = kept == 0 ? NONE : Arrays.copyOf(next, kept);
+            if (kept != current.length) entries = kept == 0 ? NONE : Arrays.copyOf(next, kept);
         }
-        sync(owner);
     }
 
-    // Paper's listener map is a plain LinkedHashMap, so install/uninstall only on the server thread.
-    private static void sync(Plugin owner) {
+    // Installed once, never removed: Paper iterates its plain LinkedHashMap on netty threads; empty entries make the handler a pass-through.
+    private static void install(Plugin owner) {
         if (!Bukkit.isPrimaryThread()) {
-            MinecraftServer.getServer().execute(() -> sync(owner));
+            MinecraftServer.getServer().execute(() -> install(owner));
             return;
         }
-        boolean wanted = entries.length != 0;
-        if (wanted == installed) return;
-        installed = wanted;
-        if (!wanted) {
-            ChannelInitializeListenerHolder.removeListener(KEY);
-            return;
-        }
+        if (installed) return;
+        installed = true;
         ChannelInitializeListenerHolder.addListener(KEY, PacketInjector::inject);
         injectExisting();
         // Connections accepted before addListener wait in Paper's private pending queue until the next connection tick.
@@ -95,13 +98,18 @@ final class PacketInjector {
 
     private static void inject(Channel channel) {
         ChannelPipeline pipeline = channel.pipeline();
-        if (pipeline.get(HANDLER_NAME) != null || !(pipeline.get(HandlerNames.PACKET_HANDLER) instanceof Connection connection)) return;
-        pipeline.addBefore(HandlerNames.PACKET_HANDLER, HANDLER_NAME, new Handler(connection));
+        ChannelHandler existing = pipeline.get(HANDLER_NAME);
+        if (existing instanceof Handler || !(pipeline.get(HandlerNames.PACKET_HANDLER) instanceof Connection connection)) return;
+        // A handler left by a previous classloader (plugin reload) is replaced so it stops pinning that loader.
+        if (existing != null) pipeline.replace(HANDLER_NAME, HANDLER_NAME, new Handler(connection));
+        else pipeline.addBefore(HandlerNames.PACKET_HANDLER, HANDLER_NAME, new Handler(connection));
     }
 
     private static final class Handler extends ChannelInboundHandlerAdapter {
 
         private final Connection connection;
+        private IntervalledCounter dropped;
+        private boolean flooding;
 
         Handler(Connection connection) {
             this.connection = connection;
@@ -110,10 +118,21 @@ final class PacketInjector {
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             Entry[] current = entries;
-            if (current.length == 0 || msg.getClass() != ServerboundPlayerActionPacket.class
-                    || !dispatch(current, (ServerboundPlayerActionPacket) msg)) {
+            if (current.length == 0 || msg.getClass() != ServerboundPlayerActionPacket.class || flooding
+                    || !dispatch(current, (ServerboundPlayerActionPacket) msg) || !countDrop()) {
                 ctx.fireChannelRead(msg);
             }
+        }
+
+        // Dropped packets never reach Paper's limiter, so count them here; past the limit everything is forwarded and Paper kicks.
+        private boolean countDrop() {
+            GlobalConfiguration.PacketLimiter.PacketLimit limit = GlobalConfiguration.get().packetLimiter.allPackets;
+            if (!limit.isEnabled()) return true;
+            if (dropped == null) dropped = new IntervalledCounter((long) (limit.interval() * 1.0e9));
+            dropped.updateAndAdd(1, System.nanoTime());
+            if (dropped.getRate() < limit.maxPacketRate()) return true;
+            flooding = true;
+            return false;
         }
 
         private boolean dispatch(Entry[] current, ServerboundPlayerActionPacket packet) {

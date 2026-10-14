@@ -3,10 +3,8 @@ package me.fullpage.nmslib.v26_2;
 import me.fullpage.nmslib.NMSHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
-import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.server.level.ChunkHolder;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ThreadedLevelLightEngine;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -53,7 +51,7 @@ final class BlockFill {
                 if (chunkChanged == 0) continue;
                 changed += chunkChanged;
                 chunk.markUnsaved();
-                resend(level, chunk, lightEngine);
+                resend(level, chunk);
             }
         }
         if (!relight.isEmpty()) lightEngine.starlight$serverRelightChunks(relight, null, null);
@@ -101,13 +99,10 @@ final class BlockFill {
         return changed;
     }
 
-    private static void resend(ServerLevel level, LevelChunk chunk, ThreadedLevelLightEngine lightEngine) {
+    private static void resend(ServerLevel level, LevelChunk chunk) {
         ChunkHolder holder = level.getChunkSource().chunkMap.getVisibleChunkIfPresent(chunk.getPos().pack());
         if (holder == null || !holder.moonrise$hasChunkBeenSent()) return;
-        ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk, lightEngine, null, null, false);
-        for (ServerPlayer player : holder.moonrise$getPlayers(false)) {
-            if (player.connection != null) player.connection.send(packet);
-        }
+        io.papermc.paper.FeatureHooks.sendChunkRefreshPackets(holder.moonrise$getPlayers(false), chunk);
     }
 
     private static final class Picker {
