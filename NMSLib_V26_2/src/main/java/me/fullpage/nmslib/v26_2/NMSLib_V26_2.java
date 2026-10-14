@@ -4,6 +4,7 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
+import me.fullpage.nmslib.packet.DigListener;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -72,8 +73,66 @@ public final class NMSLib_V26_2 implements NMSHandler {
         net.minecraft.core.BlockPos position = nativeBlock.getPosition();
         net.minecraft.world.level.LevelAccessor level = nativeBlock.getLevel();
         if (!level.getMinecraftWorld().getChunkSource().isChunkLoaded(position.getX() >> 4, position.getZ() >> 4)) return false;
-        // 1042 retains client/light updates while suppressing shape updates and placement callbacks.
-        return level.setBlock(position, state, applyPhysics ? 3 : 1042);
+        // Without physics: client and light updates only; no neighbour/shape updates, onPlace, block entity side effects or POI updates.
+        return level.setBlock(position, state, applyPhysics ? net.minecraft.world.level.block.Block.UPDATE_ALL : NO_PHYSICS_FLAGS);
+    }
+
+    private static final int NO_PHYSICS_FLAGS = net.minecraft.world.level.block.Block.UPDATE_CLIENTS
+            | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE
+            | net.minecraft.world.level.block.Block.UPDATE_SKIP_ON_PLACE
+            | net.minecraft.world.level.block.Block.UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS
+            | net.minecraft.world.level.block.Block.UPDATE_SKIP_POI;
+
+    static net.minecraft.world.level.block.state.BlockState state(int stateId) {
+        net.minecraft.world.level.block.state.BlockState state = net.minecraft.world.level.block.Block.BLOCK_STATE_REGISTRY.byId(stateId);
+        if (state == null) throw new IllegalArgumentException("Unknown block state id " + stateId);
+        return state;
+    }
+
+    @Override
+    public boolean supportsPacketListeners() {
+        return true;
+    }
+
+    @Override
+    public void addDigListener(Plugin owner, DigListener listener) {
+        PacketInjector.add(owner, listener);
+    }
+
+    @Override
+    public void removePacketListeners(Plugin owner) {
+        PacketInjector.remove(owner);
+    }
+
+    @Override
+    public int blockStateId(BlockData data) {
+        return net.minecraft.world.level.block.Block.getId(((org.bukkit.craftbukkit.block.data.CraftBlockData) java.util.Objects.requireNonNull(data, "data")).getState());
+    }
+
+    @Override
+    public BlockData blockData(int stateId) {
+        return state(stateId).asBlockData();
+    }
+
+    @Override
+    public void sendBlockChanges(Player viewer, long[] positions, int[] stateIds, int count) {
+        BlockChanges.send(viewer, positions, stateIds, count);
+    }
+
+    @Override
+    public void acknowledgeBlockChanges(Player player, int sequence) {
+        if (!org.bukkit.Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Block change acknowledgements must run on the server thread");
+        }
+        net.minecraft.server.network.ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+        // A negative sequence would make ackBlockChangesUpTo kick the player.
+        if (connection != null && sequence >= 0) connection.ackBlockChangesUpTo(sequence);
+    }
+
+    @Override
+    public int fillBlocks(org.bukkit.World world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
+                          int[] stateIds, int[] cumulativeWeights, long seed) {
+        return BlockFill.fill(world, minX, minY, minZ, maxX, maxY, maxZ, stateIds, cumulativeWeights, seed);
     }
 
     @Override
