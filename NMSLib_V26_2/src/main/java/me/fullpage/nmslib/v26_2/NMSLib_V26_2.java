@@ -138,6 +138,46 @@ public final class NMSLib_V26_2 implements NMSHandler {
     }
 
     @Override
+    public int blockStateCount() {
+        return net.minecraft.world.level.block.Block.BLOCK_STATE_REGISTRY.size();
+    }
+
+    @Override
+    public int lightEmission(int stateId) {
+        return LightTables.EMISSION[stateId];
+    }
+
+    @Override
+    public int lightOpacity(int stateId) {
+        return LightTables.OPACITY[stateId];
+    }
+
+    @Override
+    public boolean propagatesSkylightDown(int stateId) {
+        return LightTables.SKYLIGHT_DOWN[stateId];
+    }
+
+    @Override
+    public int lightOcclusionFaces(int stateId) {
+        return LightTables.OCCLUSION_FACES[stateId];
+    }
+
+    @Override
+    public int dataVersion() {
+        return DataUpgrades.current();
+    }
+
+    @Override
+    public String upgradeBlockData(String blockData, int fromDataVersion) {
+        return DataUpgrades.blockData(blockData, fromDataVersion);
+    }
+
+    @Override
+    public String upgradeBlockEntity(String snbt, int fromDataVersion) {
+        return DataUpgrades.blockEntity(snbt, fromDataVersion);
+    }
+
+    @Override
     public void sendBlockChanges(Player viewer, long[] positions, int[] stateIds, int count) {
         BlockChanges.send(viewer, positions, stateIds, count);
     }

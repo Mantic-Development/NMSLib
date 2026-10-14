@@ -163,7 +163,7 @@ public interface NMSHandler {
         return false;
     }
 
-    /** Builds a client-only chunk from the source with the light and biomes of the loaded server chunk there; server thread only. */
+    /** Builds a client-only chunk from the source with the biomes of the loaded server chunk and its light unless the source supplies light; server thread only. */
     default VirtualChunk prepareChunk(org.bukkit.World world, int chunkX, int chunkZ, ChunkSource source) {
         throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
     }
@@ -181,6 +181,58 @@ public interface NMSHandler {
     /** Returns a new BlockData for an id from blockStateId. */
     default org.bukkit.block.data.BlockData blockData(int stateId) {
         return BlockStateIds.data(stateId);
+    }
+
+    /** Number of state ids; every id in 0..count-1 is valid for blockData and the light tables. Throws UnsupportedOperationException when unsupported. */
+    default int blockStateCount() {
+        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
+    }
+
+    /** Light the state emits, 0..15 (vanilla getLightEmission). Throws UnsupportedOperationException when unsupported. */
+    default int lightEmission(int stateId) {
+        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
+    }
+
+    /**
+     * Light lost entering the state, 0..15 (vanilla getLightDampening): 15 for full opaque blocks, 0 for air and glass, 1 for
+     * other blocks that do not pass sky light down (leaves, water); each step costs max(1, opacity). Throws UnsupportedOperationException when unsupported.
+     */
+    default int lightOpacity(int stateId) {
+        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
+    }
+
+    /** True when sky light passes down through the state undiminished (vanilla propagatesSkylightDown). Throws UnsupportedOperationException when unsupported. */
+    default boolean propagatesSkylightDown(int stateId) {
+        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
+    }
+
+    /**
+     * Faces that stop light entering or leaving the state whatever its opacity (slabs, stairs, ...), as bits {@code 1 << i} for
+     * down, up, north, south, west, east; 0 for states not shaped for light. Throws UnsupportedOperationException when unsupported.
+     */
+    default int lightOcclusionFaces(int stateId) {
+        throw new UnsupportedOperationException("Block state tables are not supported on this server version");
+    }
+
+    /** Current world DataVersion of the server. */
+    default int dataVersion() {
+        return org.bukkit.Bukkit.getUnsafe().getDataVersion();
+    }
+
+    /**
+     * Upgrades block data such as {@code minecraft:chain[axis=y]} saved at fromDataVersion to the current version, properties sorted
+     * by name; returns the input unchanged when it is current, malformed or unknown. Thread-safe. Throws UnsupportedOperationException when unsupported.
+     */
+    default String upgradeBlockData(String blockData, int fromDataVersion) {
+        throw new UnsupportedOperationException("Data fixing is not supported on this server version");
+    }
+
+    /**
+     * Upgrades a block entity SNBT compound with its id (x, y, z optional) saved at fromDataVersion to the current version;
+     * returns the input unchanged when it is current or cannot be parsed or fixed. Thread-safe. Throws UnsupportedOperationException when unsupported.
+     */
+    default String upgradeBlockEntity(String snbt, int fromDataVersion) {
+        throw new UnsupportedOperationException("Data fixing is not supported on this server version");
     }
 
     /** Sends client-only block changes; positions come from BlockPositions.pack, ids from blockStateId. */
