@@ -213,6 +213,28 @@ public interface NMSHandler {
         throw new UnsupportedOperationException("Tab list packets are not supported on this server version");
     }
 
+    /**
+     * Sets the item's name (item_name) and lore from legacy section-sign text, hex colours included, styled exactly as Adventure's
+     * legacySection parse of the same text; a component is only replaced when it differs. No-op on empty items. Returns true when
+     * the item changed. Throws UnsupportedOperationException when unsupported.
+     */
+    default boolean setItemDisplay(ItemStack item, String name, java.util.List<String> lore) {
+        throw new UnsupportedOperationException("Item display components are not supported on this server version");
+    }
+
+    /**
+     * The item's current name (item_name) as an opaque token to compare by identity: the same instance while nothing replaces
+     * the name, copies included. Throws UnsupportedOperationException when unsupported.
+     */
+    default Object itemNameToken(ItemStack item) {
+        throw new UnsupportedOperationException("Item display components are not supported on this server version");
+    }
+
+    /** Like itemNameToken, for the item's lore. Throws UnsupportedOperationException when unsupported. */
+    default Object itemLoreToken(ItemStack item) {
+        throw new UnsupportedOperationException("Item display components are not supported on this server version");
+    }
+
     /** Returns an opaque state id, valid for this server run. */
     default int blockStateId(org.bukkit.block.data.BlockData data) {
         return BlockStateIds.id(java.util.Objects.requireNonNull(data, "data"));

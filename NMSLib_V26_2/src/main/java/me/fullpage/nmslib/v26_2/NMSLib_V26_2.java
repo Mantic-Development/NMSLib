@@ -166,6 +166,21 @@ public final class NMSLib_V26_2 implements NMSHandler {
     }
 
     @Override
+    public boolean setItemDisplay(ItemStack item, String name, List<String> lore) {
+        return ItemDisplays.set(item, name, lore);
+    }
+
+    @Override
+    public Object itemNameToken(ItemStack item) {
+        return CraftItemStack.unwrap(item).get(net.minecraft.core.component.DataComponents.ITEM_NAME);
+    }
+
+    @Override
+    public Object itemLoreToken(ItemStack item) {
+        return CraftItemStack.unwrap(item).get(net.minecraft.core.component.DataComponents.LORE);
+    }
+
+    @Override
     public int blockStateId(BlockData data) {
         return net.minecraft.world.level.block.Block.getId(((org.bukkit.craftbukkit.block.data.CraftBlockData) java.util.Objects.requireNonNull(data, "data")).getState());
     }
