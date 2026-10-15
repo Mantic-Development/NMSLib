@@ -47,6 +47,7 @@ import org.bukkit.util.Vector;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -149,6 +150,19 @@ public final class NMSLib_V26_2 implements NMSHandler {
         ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
         if (players.isEmpty() || handle.connection == null) return;
         handle.connection.send(new ClientboundPlayerInfoRemovePacket(new ArrayList<>(players)));
+    }
+
+    @Override
+    public void sendTabListUpdate(Collection<? extends Player> viewers, Collection<? extends Player> players) {
+        if (viewers.isEmpty() || players.isEmpty()) return;
+        List<ServerPlayer> entries = new ArrayList<>(players.size());
+        for (Player player : players) entries.add(((CraftPlayer) player).getHandle());
+        ClientboundPlayerInfoUpdatePacket packet = new ClientboundPlayerInfoUpdatePacket(EnumSet.of(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY,
+                ClientboundPlayerInfoUpdatePacket.Action.UPDATE_GAME_MODE, ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME), entries);
+        for (Player viewer : viewers) {
+            ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+            if (handle.connection != null) handle.connection.send(packet);
+        }
     }
 
     @Override

@@ -204,6 +204,15 @@ public interface NMSHandler {
         throw new UnsupportedOperationException("Tab list packets are not supported on this server version");
     }
 
+    /**
+     * Sends the players' current latency, game mode and tab list name to every viewer, also for players a viewer cannot see
+     * (the server only refreshes those for visible players). One packet is built and shared. Server thread only.
+     * Throws UnsupportedOperationException when unsupported.
+     */
+    default void sendTabListUpdate(Collection<? extends Player> viewers, Collection<? extends Player> players) {
+        throw new UnsupportedOperationException("Tab list packets are not supported on this server version");
+    }
+
     /** Returns an opaque state id, valid for this server run. */
     default int blockStateId(org.bukkit.block.data.BlockData data) {
         return BlockStateIds.id(java.util.Objects.requireNonNull(data, "data"));
