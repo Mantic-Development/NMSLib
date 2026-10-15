@@ -8,11 +8,10 @@ import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.UseItemOnListener;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.PathfinderMob;
@@ -34,6 +33,7 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -251,7 +251,9 @@ public final class NMSLib_V26_2 implements NMSHandler {
 
     @Override
     public void sendActionBar(Player player, String message) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+        // Legacy text straight to a vanilla component; the Bungee route round-tripped every send through JSON and the codec.
+        ServerPlayer handle = ((CraftPlayer) player).getHandle();
+        if (handle.connection != null) handle.connection.send(new ClientboundSystemChatPacket(CraftChatMessage.fromString(message, true, true)[0], true));
     }
 
     @Override
