@@ -116,7 +116,7 @@
     <dependency> <!-- https://github.com/Mojang/DataFixerUpper -->
       <groupId>com.mojang</groupId>
       <artifactId>datafixerupper</artifactId>
-      <version>8.0.16</version>
+      <version>10.0.21</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -130,6 +130,12 @@
       <artifactId>ManticLib</artifactId>
       <version>1.0.51.6</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.11.2</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
