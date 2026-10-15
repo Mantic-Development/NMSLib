@@ -11,6 +11,8 @@ import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.PathfinderMob;
@@ -43,6 +45,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -130,6 +133,22 @@ public final class NMSLib_V26_2 implements NMSHandler {
     @Override
     public void resendChunk(Player viewer, int chunkX, int chunkZ) {
         VirtualChunks.resend(viewer, chunkX, chunkZ);
+    }
+
+    @Override
+    public void sendTabListAdd(Player viewer, Collection<? extends Player> players) {
+        ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+        if (players.isEmpty() || handle.connection == null) return;
+        List<ServerPlayer> entries = new ArrayList<>(players.size());
+        for (Player player : players) entries.add(((CraftPlayer) player).getHandle());
+        handle.connection.send(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(entries, handle));
+    }
+
+    @Override
+    public void sendTabListRemove(Player viewer, Collection<UUID> players) {
+        ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+        if (players.isEmpty() || handle.connection == null) return;
+        handle.connection.send(new ClientboundPlayerInfoRemovePacket(new ArrayList<>(players)));
     }
 
     @Override

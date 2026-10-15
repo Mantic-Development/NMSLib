@@ -20,6 +20,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.UUID;
 
 public interface NMSHandler {
 
@@ -187,6 +188,20 @@ public interface NMSHandler {
      */
     default void resendChunk(Player viewer, int chunkX, int chunkZ) {
         throw new UnsupportedOperationException("Virtual chunks are not supported on this server version");
+    }
+
+    /**
+     * Adds the players to the viewer's tab list as listed entries, also when the viewer cannot see them: hidePlayer removes
+     * hidden players from the tab list, and the server sends them no later tab updates, nor their removal on quit.
+     * Server thread only. Throws UnsupportedOperationException when unsupported.
+     */
+    default void sendTabListAdd(Player viewer, Collection<? extends Player> players) {
+        throw new UnsupportedOperationException("Tab list packets are not supported on this server version");
+    }
+
+    /** Removes the players with these ids from the viewer's tab list. Server thread only. Throws UnsupportedOperationException when unsupported. */
+    default void sendTabListRemove(Player viewer, Collection<UUID> players) {
+        throw new UnsupportedOperationException("Tab list packets are not supported on this server version");
     }
 
     /** Returns an opaque state id, valid for this server run. */
