@@ -29,8 +29,9 @@ final class ItemDisplays {
         net.minecraft.world.item.ItemStack handle = CraftItemStack.unwrap(item);
         if (handle.isEmpty()) return false;
         boolean changed = false;
-        Component title = line(name).component();
-        if (!title.equals(handle.get(DataComponents.ITEM_NAME))) {
+        Component title = line(name).component(), currentName = handle.get(DataComponents.ITEM_NAME);
+        // Paper's AdventureComponent equals its conversion; replace it anyway so the codecs stop going through Adventure.
+        if (!(currentName instanceof MutableComponent) || !title.equals(currentName)) {
             handle.set(DataComponents.ITEM_NAME, title);
             changed = true;
         }
@@ -42,7 +43,7 @@ final class ItemDisplays {
             Line line = line(lore.get(i));
             lines[i] = line.component();
             styled[i] = line.styled();
-            same = same && lines[i].equals(current.get(i));
+            same = same && current.get(i) instanceof MutableComponent at && lines[i].equals(at);
         }
         if (!same) {
             // ItemLore.equals compares styled lines first; vanilla's lazy view would merge styles again on every comparison.
