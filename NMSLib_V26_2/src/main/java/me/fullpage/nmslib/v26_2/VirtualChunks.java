@@ -1,6 +1,11 @@
 package me.fullpage.nmslib.v26_2;
 
+import ca.spottedleaf.moonrise.patches.starlight.chunk.StarlightChunk;
+import ca.spottedleaf.moonrise.patches.starlight.light.SWMRNibbleArray;
+import ca.spottedleaf.moonrise.patches.starlight.light.StarLightInterface;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.papermc.paper.FeatureHooks;
 import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
@@ -12,6 +17,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -37,6 +43,7 @@ import net.minecraft.world.level.chunk.LightChunkGetter;
 import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.level.chunk.PalettedContainerFactory;
 import net.minecraft.world.level.chunk.UpgradeData;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.lighting.LayerLightEventListener;
 import net.minecraft.world.level.lighting.LevelLightEngine;
@@ -53,11 +60,13 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class VirtualChunks {
 
-    private static final int AIR_ID = Block.getId(Blocks.AIR.defaultBlockState());
+    private static final BlockState AIR = Blocks.AIR.defaultBlockState();
+    private static final int AIR_ID = Block.getId(AIR);
     private static final String DEFAULT_BIOME = "minecraft:plains";
     // Single-value containers are never written after construction, so one per biome serves every chunk and thread.
     private static final Map<BiomeKey, PalettedContainer<Holder<Biome>>> BIOMES = new ConcurrentHashMap<>();
@@ -65,6 +74,12 @@ final class VirtualChunks {
     // Shared and never mutated: the light packet only calls isEmpty() and copy() on supplied layers.
     private static final DataLayer EMPTY_LIGHT = new DataLayer();
     private static final DataLayer FULL_LIGHT = new SharedLayer(new DataLayer(15).getData());
+    private static final DataLayer ZERO_LIGHT = new SharedLayer(new byte[DataLayer.SIZE]);
+    // Light section classes of an empty chunk: no layer, empty, all 0, all 15.
+    private static final DataLayer[] LIGHT_CLASSES = {null, EMPTY_LIGHT, ZERO_LIGHT, FULL_LIGHT};
+    // Server thread only: what an empty chunk's packet depends on besides its position, and the packets built from it.
+    private static final FriendlyByteBuf SIGNATURE = new FriendlyByteBuf(Unpooled.buffer());
+    private static final Map<LevelChunk, Resent> RESENT = new WeakHashMap<>(); // entries go with their unloaded chunks
     private static final LightChunkGetter NO_CHUNKS = new LightChunkGetter() {
         @Override
         public LightChunk getChunkForLighting(int x, int z) {
@@ -87,6 +102,9 @@ final class VirtualChunks {
     }
 
     private record BiomeKey(RegistryAccess registries, String biome) {
+    }
+
+    private record Resent(ByteBuf signature, ClientboundLevelChunkWithLightPacket packet) {
     }
 
     // The packet serializes blocks and copies light in its constructor, so one instance can go to any number of channels.
@@ -320,8 +338,78 @@ final class VirtualChunks {
         ServerLevel level = player.level();
         LevelChunk chunk = level.getChunkIfLoaded(chunkX, chunkZ);
         if (chunk == null || !level.moonrise$getPlayerChunkLoader().isChunkSent(player, chunkX, chunkZ)) return;
+        ClientboundLevelChunkWithLightPacket empty = emptyChunk(chunk, level.getLightEngine());
         // The server's own refresh path (CraftWorld.refreshChunk): anti-xray per viewer and server light, no PlayerChunkLoadEvent.
-        FeatureHooks.sendChunkRefreshPackets(List.of(player), chunk);
+        if (empty == null) FeatureHooks.sendChunkRefreshPackets(List.of(player), chunk);
+        else if (player.connection != null) player.connection.send(empty);
+    }
+
+    /**
+     * The server's packet for an all-air chunk without block entities, built once and reused while its biomes and light stay the
+     * same; null for any other chunk. Anti-xray cannot change it: zero-bit sections have no block data to rewrite. Server thread only.
+     */
+    static ClientboundLevelChunkWithLightPacket emptyChunk(LevelChunk chunk, LevelLightEngine light) {
+        if (!chunk.getBlockEntities().isEmpty() || !flatHeightmaps(chunk)) return null;
+        FriendlyByteBuf signature = SIGNATURE;
+        signature.clear();
+        for (LevelChunkSection section : chunk.getSections()) {
+            PalettedContainer<BlockState> states = section.getStates();
+            if (!section.hasOnlyAir() || section.hasFluid() || states.bitsPerEntry() != 0 || states.get(0) != AIR) return null;
+            section.getBiomes().write(signature, null, 0);
+        }
+        int lightAt = signature.writerIndex();
+        if (!lightClasses(chunk, light, signature)) return null;
+        Resent resent = RESENT.get(chunk);
+        if (resent != null && resent.signature.equals(signature)) return resent.packet;
+        int count = signature.writerIndex() - lightAt;
+        DataLayer[] sky = new DataLayer[count], block = new DataLayer[count];
+        for (int i = 0; i < count; i++) {
+            int classes = signature.getByte(lightAt + i);
+            sky[i] = LIGHT_CLASSES[classes >> 2];
+            block[i] = LIGHT_CLASSES[classes & 3];
+        }
+        int min = light.getMinLightSection();
+        ClientboundLevelChunkWithLightPacket packet = new ClientboundLevelChunkWithLightPacket(chunk,
+                new SuppliedLight(new Layer(min, sky), new Layer(min, block)), null, null, false);
+        RESENT.put(chunk, new Resent(Unpooled.copiedBuffer(signature), packet));
+        return packet;
+    }
+
+    // Constant while all present and zero, so they stay out of the signature.
+    private static boolean flatHeightmaps(LevelChunk chunk) {
+        int sent = 0;
+        for (Map.Entry<Heightmap.Types, Heightmap> entry : chunk.getHeightmaps()) {
+            if (!entry.getKey().sendToClient()) continue;
+            for (long word : entry.getValue().getRawData()) if (word != 0) return false;
+            sent++;
+        }
+        return sent == CLIENT_HEIGHTMAPS.size();
+    }
+
+    // One byte per light section, sky class in the high bits, read as Starlight's layer readers return them to the packet.
+    private static boolean lightClasses(LevelChunk chunk, LevelLightEngine light, ByteBuf out) {
+        StarLightInterface starlight = light.starlight$getLightEngine();
+        if (starlight.getAnyChunkNow(chunk.getPos().x(), chunk.getPos().z()) != chunk) return false;
+        StarlightChunk nibbles = (StarlightChunk) chunk;
+        SWMRNibbleArray[] sky = starlight.hasSkyLight() && chunk.isLightCorrect() && chunk.getPersistedStatus().isOrAfter(ChunkStatus.LIGHT)
+                && nibbles.starlight$getSkyEmptinessMap() != null ? nibbles.starlight$getSkyNibbles() : null;
+        SWMRNibbleArray[] block = starlight.hasBlockLight() ? nibbles.starlight$getBlockNibbles() : null;
+        int count = light.getLightSectionCount();
+        if (sky != null && sky.length != count || block != null && block.length != count) return false;
+        for (int i = 0; i < count; i++) {
+            int skyClass = sky == null ? 0 : lightClass(sky[i]), blockClass = block == null ? 0 : lightClass(block[i]);
+            if (skyClass < 0 || blockClass < 0) return false;
+            out.writeByte(skyClass << 2 | blockClass);
+        }
+        return true;
+    }
+
+    private static int lightClass(SWMRNibbleArray nibble) {
+        DataLayer layer = nibble.toVanillaNibble();
+        if (layer == null) return 0;
+        if (layer.isEmpty()) return 1;
+        byte[] data = layer.getData();
+        return Arrays.equals(data, ZERO_LIGHT.getData()) ? 2 : Arrays.equals(data, FULL_LIGHT.getData()) ? 3 : -1;
     }
 
     private static void checkThread() {
