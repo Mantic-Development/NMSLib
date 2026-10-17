@@ -7,6 +7,7 @@ import me.fullpage.nmslib.NMSHandler;
 import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
+import me.fullpage.nmslib.packet.PacketArmorStand;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
@@ -28,6 +29,7 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.block.data.type.Stairs;
+import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftEnderPearl;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
@@ -224,6 +226,15 @@ public final class NMSLib_V26_2 implements NMSHandler {
     public int fillBlocks(org.bukkit.World world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
                           int[] stateIds, int[] cumulativeWeights, long seed) {
         return BlockFill.fill(world, minX, minY, minZ, maxX, maxY, maxZ, stateIds, cumulativeWeights, seed);
+    }
+
+    @Override
+    public PacketArmorStand preparePacketArmorStand(Location location) {
+        if (!org.bukkit.Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Packet armor stands must be prepared on the server thread");
+        }
+        net.minecraft.server.level.ServerLevel level = ((CraftWorld) java.util.Objects.requireNonNull(location.getWorld(), "world")).getHandle();
+        return new ClientArmorStand(level, level.getNextEntityId(), location.getX(), location.getY(), location.getZ(), location.getYaw());
     }
 
     @Override

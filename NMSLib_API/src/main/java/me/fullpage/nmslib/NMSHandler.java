@@ -3,6 +3,7 @@ package me.fullpage.nmslib;
 import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
+import me.fullpage.nmslib.packet.PacketArmorStand;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -38,6 +39,14 @@ public interface NMSHandler {
      * Sends a prepared group to one viewer, bundling it when the protocol supports bundles.
      */
     default void sendDisplayUpdates(Player viewer, Collection<PacketDisplay.Update> updates) { PacketDisplay.send(viewer, updates); }
+
+    /**
+     * Prepares a client-only armor stand at the location, shown to nobody yet. Server thread only.
+     * Throws UnsupportedOperationException when unsupported.
+     */
+    default PacketArmorStand preparePacketArmorStand(Location location) {
+        throw new UnsupportedOperationException("Packet armor stands are not supported on this server version");
+    }
 
     /**
      * Changes a loaded block with client/lighting updates, without drops or events.
