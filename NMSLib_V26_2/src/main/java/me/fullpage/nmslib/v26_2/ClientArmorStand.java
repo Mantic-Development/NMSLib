@@ -8,11 +8,11 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 final class ClientArmorStand implements PacketArmorStand {
@@ -236,9 +235,10 @@ final class ClientArmorStand implements PacketArmorStand {
         sentX = nextX;
         sentY = nextY;
         sentZ = nextZ;
-        boolean teleport = resync || dx != (short) dx || dy != (short) dy || dz != (short) dz;
+        boolean absolute = resync || dx != (short) dx || dy != (short) dy || dz != (short) dz;
         resync = false;
-        return teleport ? new ClientboundTeleportEntityPacket(id, new PositionMoveRotation(new Vec3(x, y, z), Vec3.ZERO, yaw, 0), Set.of(), false)
+        // Not a teleport packet: the client only rebases its relative-move decoding on position sync, like vanilla ServerEntity.
+        return absolute ? new ClientboundEntityPositionSyncPacket(id, new PositionMoveRotation(new Vec3(x, y, z), Vec3.ZERO, yaw, 0), false)
                 : new ClientboundMoveEntityPacket.PosRot(id, (short) dx, (short) dy, (short) dz, Mth.packDegrees(yaw), (byte) 0, false);
     }
 

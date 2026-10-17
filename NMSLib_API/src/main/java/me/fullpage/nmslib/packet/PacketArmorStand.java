@@ -13,7 +13,7 @@ import java.util.UUID;
  * Setters only record state and skip values that did not change. spawn sends the full current state to new viewers;
  * flush sends what changed since the last flush (moves as relative moves) to the current viewers, building each packet
  * once for all of them. Packets read no world state; the handle is not thread-safe, so use it from the server thread.
- * Clients forget it when its chunk is resent or unloaded and on world changes: spawn it again for them.
+ * Clients keep it across chunk resends and unloads but drop it when they change worlds: spawn it again for them.
  * Clicks on it arrive as Paper's PlayerUseUnknownEntityEvent carrying getEntityId(), without a reach check.
  */
 public interface PacketArmorStand {
