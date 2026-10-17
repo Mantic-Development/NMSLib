@@ -6,6 +6,7 @@ import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.PacketArmorStand;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
@@ -242,6 +244,36 @@ public interface NMSHandler {
     /** Like itemNameToken, for the item's lore. Throws UnsupportedOperationException when unsupported. */
     default Object itemLoreToken(ItemStack item) {
         throw new UnsupportedOperationException("Item display components are not supported on this server version");
+    }
+
+    /**
+     * Bit i is set when slot i of the inventory (getContents order) holds an item with persistent data under key, of any type.
+     * Reads items in place, without Bukkit item copies. Throws UnsupportedOperationException when unsupported.
+     */
+    default long dataSlots(PlayerInventory inventory, NamespacedKey key) {
+        throw new UnsupportedOperationException("Inventory reads are not supported on this server version");
+    }
+
+    /**
+     * The first slot of the inventory (getContents order), trying hint before the others, whose item has the string value as
+     * persistent data under key; -1 when none. Throws UnsupportedOperationException when unsupported.
+     */
+    default int dataSlot(PlayerInventory inventory, NamespacedKey key, String value, int hint) {
+        throw new UnsupportedOperationException("Inventory reads are not supported on this server version");
+    }
+
+    /** True when a storage slot (0-35) is empty or holds less than its item's max stack size. Throws UnsupportedOperationException when unsupported. */
+    default boolean hasStorageRoom(PlayerInventory inventory) {
+        throw new UnsupportedOperationException("Inventory reads are not supported on this server version");
+    }
+
+    /**
+     * Adds amount items like prototype to the storage slots (0-35): first tops up similar stacks in place, which the next
+     * inventory sync sends, then fills empty slots in order through setItem in stacks of at most maxStack. Returns what did not fit.
+     * Server thread only. Throws UnsupportedOperationException when unsupported.
+     */
+    default long addToStorage(PlayerInventory inventory, ItemStack prototype, long amount, int maxStack) {
+        throw new UnsupportedOperationException("Inventory reads are not supported on this server version");
     }
 
     /** Returns an opaque state id, valid for this server run. */

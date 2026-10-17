@@ -43,6 +43,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
@@ -180,6 +181,26 @@ public final class NMSLib_V26_2 implements NMSHandler {
     @Override
     public Object itemLoreToken(ItemStack item) {
         return CraftItemStack.unwrap(item).get(net.minecraft.core.component.DataComponents.LORE);
+    }
+
+    @Override
+    public long dataSlots(PlayerInventory inventory, NamespacedKey key) {
+        return InventorySlots.dataSlots(inventory, key);
+    }
+
+    @Override
+    public int dataSlot(PlayerInventory inventory, NamespacedKey key, String value, int hint) {
+        return InventorySlots.dataSlot(inventory, key, value, hint);
+    }
+
+    @Override
+    public boolean hasStorageRoom(PlayerInventory inventory) {
+        return InventorySlots.hasStorageRoom(inventory);
+    }
+
+    @Override
+    public long addToStorage(PlayerInventory inventory, ItemStack prototype, long amount, int maxStack) {
+        return InventorySlots.addToStorage(inventory, prototype, amount, maxStack);
     }
 
     @Override
