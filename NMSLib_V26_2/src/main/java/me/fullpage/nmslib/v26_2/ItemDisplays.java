@@ -11,6 +11,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /** Item names and lore from legacy text as eager vanilla components, so the server compares and encodes them without Adventure conversion. */
@@ -47,7 +48,7 @@ final class ItemDisplays {
         }
         if (!same) {
             // ItemLore.equals compares styled lines first; vanilla's lazy view would merge styles again on every comparison.
-            handle.set(DataComponents.LORE, new ItemLore(List.of(lines), List.of(styled)));
+            handle.set(DataComponents.LORE, new ItemLore(Arrays.asList(lines), Arrays.asList(styled)));
             changed = true;
         }
         return changed;
