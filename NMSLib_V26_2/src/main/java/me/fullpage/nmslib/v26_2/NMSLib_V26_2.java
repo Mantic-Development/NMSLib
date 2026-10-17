@@ -277,9 +277,26 @@ public final class NMSLib_V26_2 implements NMSHandler {
 
     @Override
     public void sendActionBar(Player player, String message) {
-        // Legacy text straight to a vanilla component; the Bungee route round-tripped every send through JSON and the codec.
         ServerPlayer handle = ((CraftPlayer) player).getHandle();
-        if (handle.connection != null) handle.connection.send(new ClientboundSystemChatPacket(CraftChatMessage.fromString(message, true, true)[0], true));
+        if (handle.connection != null) handle.connection.send(new ClientboundSystemChatPacket(actionBar(message), true));
+    }
+
+    private static final String PLAIN_CODES = "0123456789abcdefklmnorABCDEFKLMNOR";
+
+    /**
+     * The client applies colour and format codes in plain text as fromString styles them, and one literal encodes for a fraction
+     * of a styled tree. Anything else after a section sign keeps fromString: hex (§x) only it understands, and a stray § pairs
+     * differently on the client.
+     */
+    static net.minecraft.network.chat.Component actionBar(String message) {
+        return message != null && plainCodes(message) ? net.minecraft.network.chat.Component.literal(message) : CraftChatMessage.fromString(message, true, true)[0];
+    }
+
+    private static boolean plainCodes(String text) {
+        for (int i = text.indexOf('§'); i >= 0; i = text.indexOf('§', i + 2)) {
+            if (i + 1 == text.length() || PLAIN_CODES.indexOf(text.charAt(i + 1)) < 0) return false;
+        }
+        return true;
     }
 
     @Override
