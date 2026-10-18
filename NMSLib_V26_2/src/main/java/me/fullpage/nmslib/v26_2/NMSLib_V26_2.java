@@ -302,12 +302,13 @@ public final class NMSLib_V26_2 implements NMSHandler {
         if (handle.connection != null) handle.connection.send(new ClientboundSystemChatPacket(actionBar(message), true));
     }
 
-    private static final String PLAIN_CODES = "0123456789abcdefklmnorABCDEFKLMNOR";
+    private static final String PLAIN_CODES = "0123456789abcdefklor";
 
     /**
      * The client applies colour and format codes in plain text as fromString styles them, and one literal encodes for a fraction
-     * of a styled tree. Anything else after a section sign keeps fromString: hex (§x) only it understands, and a stray § pairs
-     * differently on the client.
+     * of a styled tree. Anything else after a section sign keeps fromString: hex (§x) only it understands, a stray § pairs
+     * differently on the client, and Geyser passes raw §m/§n (Bedrock colours) and upper case codes to Bedrock as written.
+     * The narrator speaks a literal's codes aloud; accepted for the encode cost.
      */
     static net.minecraft.network.chat.Component actionBar(String message) {
         return message != null && plainCodes(message) ? net.minecraft.network.chat.Component.literal(message) : CraftChatMessage.fromString(message, true, true)[0];
