@@ -22,7 +22,8 @@ import java.util.List;
 final class BlockChanges {
 
     private static final long SECTION_MASK = ~(15L << 38 | 15L << 12 | 15L);
-    private static final int BUNDLE_LIMIT = 4095;
+    // Half the client's 4096: a packet-level anticheat (e.g. CultAC) may add a ping after every sub-packet.
+    private static final int BUNDLE_LIMIT = 2047;
 
     private BlockChanges() {
     }
