@@ -24,7 +24,7 @@ final class InventorySlots {
 
     static long dataSlots(PlayerInventory inventory, NamespacedKey key) {
         Inventory handle = ((CraftInventoryPlayer) inventory).getInventory();
-        String name = NAMES.computeIfAbsent(key, NamespacedKey::toString);
+        String name = name(key);
         long slots = 0;
         // getContents order is slot order: the 36 storage slots, then equipment sorted by slot index.
         for (int slot = 0, size = handle.getContainerSize(); slot < size; slot++) {
@@ -35,7 +35,7 @@ final class InventorySlots {
 
     static int dataSlot(PlayerInventory inventory, NamespacedKey key, String value, int hint) {
         Inventory handle = ((CraftInventoryPlayer) inventory).getInventory();
-        String name = NAMES.computeIfAbsent(key, NamespacedKey::toString);
+        String name = name(key);
         int size = handle.getContainerSize();
         if (hint >= 0 && hint < size && data(handle.getItem(hint), name) instanceof StringTag(String found) && found.equals(value)) return hint;
         for (int slot = 0; slot < size; slot++) {
@@ -77,6 +77,12 @@ final class InventorySlots {
             amount -= take;
         }
         return amount;
+    }
+
+    // get first: computeIfAbsent locks whenever the key is not first in its bin, and the two plugin keys share one.
+    private static String name(NamespacedKey key) {
+        String name = NAMES.get(key);
+        return name != null ? name : NAMES.computeIfAbsent(key, NamespacedKey::toString);
     }
 
     /** The item's entry under PublicBukkitValues, null for empty items like Bukkit's null slots. */
