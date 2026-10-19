@@ -4,6 +4,7 @@ import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.PacketArmorStand;
+import me.fullpage.nmslib.packet.PacketPlayer;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -48,6 +49,20 @@ public interface NMSHandler {
      */
     default PacketArmorStand preparePacketArmorStand(Location location) {
         throw new UnsupportedOperationException("Packet armor stands are not supported on this server version");
+    }
+
+    /** True when preparePacketPlayer is implemented natively. */
+    default boolean supportsPacketPlayers() {
+        return false;
+    }
+
+    /**
+     * Prepares a client-only player at the location, shown to nobody yet: name at most 16 characters, skin null for the
+     * default skin. Server thread only. Throws IllegalArgumentException for a bad name and UnsupportedOperationException
+     * when unsupported.
+     */
+    default PacketPlayer preparePacketPlayer(Location location, String name, PacketPlayer.Skin skin) {
+        throw new UnsupportedOperationException("Packet players are not supported on this server version");
     }
 
     /**
