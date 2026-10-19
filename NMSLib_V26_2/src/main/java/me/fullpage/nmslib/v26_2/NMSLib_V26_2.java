@@ -8,6 +8,7 @@ import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.PacketArmorStand;
+import me.fullpage.nmslib.packet.PacketPlayer;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
@@ -256,6 +257,21 @@ public final class NMSLib_V26_2 implements NMSHandler {
         }
         net.minecraft.server.level.ServerLevel level = ((CraftWorld) java.util.Objects.requireNonNull(location.getWorld(), "world")).getHandle();
         return new ClientArmorStand(level, level.getNextEntityId(), location.getX(), location.getY(), location.getZ(), location.getYaw());
+    }
+
+    @Override
+    public boolean supportsPacketPlayers() {
+        return true;
+    }
+
+    @Override
+    public PacketPlayer preparePacketPlayer(Location location, String name, PacketPlayer.Skin skin) {
+        if (!org.bukkit.Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Packet players must be prepared on the server thread");
+        }
+        net.minecraft.server.level.ServerLevel level = ((CraftWorld) java.util.Objects.requireNonNull(location.getWorld(), "world")).getHandle();
+        return new ClientPlayer(level, level.getNextEntityId(), name, skin, location.getX(), location.getY(), location.getZ(),
+                location.getYaw(), location.getPitch());
     }
 
     @Override
