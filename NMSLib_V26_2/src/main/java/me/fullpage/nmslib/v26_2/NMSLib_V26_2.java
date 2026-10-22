@@ -8,6 +8,7 @@ import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.PacketArmorStand;
+import me.fullpage.nmslib.packet.PacketEntity;
 import me.fullpage.nmslib.packet.PacketPlayer;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -272,6 +273,36 @@ public final class NMSLib_V26_2 implements NMSHandler {
         net.minecraft.server.level.ServerLevel level = ((CraftWorld) java.util.Objects.requireNonNull(location.getWorld(), "world")).getHandle();
         return new ClientPlayer(level, level.getNextEntityId(), name, skin, location.getX(), location.getY(), location.getZ(),
                 location.getYaw(), location.getPitch());
+    }
+
+    @Override
+    public PacketEntity preparePacketEntity(Location location, org.bukkit.entity.EntityType type) {
+        if (!org.bukkit.Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Packet entities must be prepared on the server thread");
+        }
+        net.minecraft.server.level.ServerLevel level = ((CraftWorld) java.util.Objects.requireNonNull(location.getWorld(), "world")).getHandle();
+        net.minecraft.world.entity.Entity entity = org.bukkit.craftbukkit.entity.CraftEntityType.bukkitToMinecraft(type)
+                .create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+        if (entity == null) throw new IllegalArgumentException(type + " cannot be created in " + location.getWorld().getName());
+        return new ClientEntity(entity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+    }
+
+    @Override
+    public void flushPacketEntities(Collection<? extends Player> viewers, Collection<? extends PacketEntity> entities) {
+        ClientEntity.flush(viewers, entities);
+    }
+
+    @Override
+    public void sendExplosion(Collection<? extends Player> viewers, double x, double y, double z, float radius, int blockCount) {
+        // Empty knockback: a present one pushes the viewer.
+        net.minecraft.network.protocol.game.ClientboundExplodePacket packet = new net.minecraft.network.protocol.game.ClientboundExplodePacket(
+                new net.minecraft.world.phys.Vec3(x, y, z), radius, blockCount, java.util.Optional.empty(),
+                radius >= 2 ? net.minecraft.core.particles.ParticleTypes.EXPLOSION_EMITTER : net.minecraft.core.particles.ParticleTypes.EXPLOSION,
+                net.minecraft.sounds.SoundEvents.GENERIC_EXPLODE, net.minecraft.world.level.Level.DEFAULT_EXPLOSION_BLOCK_PARTICLES);
+        for (Player viewer : viewers) {
+            ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+            if (handle.connection != null) handle.connection.send(packet);
+        }
     }
 
     @Override

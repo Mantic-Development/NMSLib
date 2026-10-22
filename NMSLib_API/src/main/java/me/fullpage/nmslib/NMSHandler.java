@@ -4,6 +4,7 @@ import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
 import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.PacketArmorStand;
+import me.fullpage.nmslib.packet.PacketEntity;
 import me.fullpage.nmslib.packet.PacketPlayer;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import org.bukkit.Location;
@@ -63,6 +64,27 @@ public interface NMSHandler {
      */
     default PacketPlayer preparePacketPlayer(Location location, String name, PacketPlayer.Skin skin) {
         throw new UnsupportedOperationException("Packet players are not supported on this server version");
+    }
+
+    /**
+     * Prepares a client-only entity of the type at the location, shown to nobody yet. Server thread only.
+     * Throws IllegalArgumentException for a type the world cannot create and UnsupportedOperationException when unsupported.
+     */
+    default PacketEntity preparePacketEntity(Location location, org.bukkit.entity.EntityType type) {
+        throw new UnsupportedOperationException("Packet entities are not supported on this server version");
+    }
+
+    /** Flushes every entity to the viewers; natively one bundle of all their changes, built once and shared. Server thread only. */
+    default void flushPacketEntities(Collection<? extends Player> viewers, Collection<? extends PacketEntity> entities) {
+        for (PacketEntity entity : entities) entity.flush(viewers);
+    }
+
+    /**
+     * Shows an explosion's particles and sound to the viewers only, without knockback or block changes; one packet built once.
+     * blockCount scales the block particles. Throws UnsupportedOperationException when unsupported.
+     */
+    default void sendExplosion(Collection<? extends Player> viewers, double x, double y, double z, float radius, int blockCount) {
+        throw new UnsupportedOperationException("Explosion packets are not supported on this server version");
     }
 
     /**
