@@ -281,8 +281,9 @@ public final class NMSLib_V26_2 implements NMSHandler {
             throw new IllegalStateException("Packet entities must be prepared on the server thread");
         }
         net.minecraft.server.level.ServerLevel level = ((CraftWorld) java.util.Objects.requireNonNull(location.getWorld(), "world")).getHandle();
+        // Skips the spawn checks: a client-only entity never exists on the server, so a peaceful world may still show monsters.
         net.minecraft.world.entity.Entity entity = org.bukkit.craftbukkit.entity.CraftEntityType.bukkitToMinecraft(type)
-                .create(level, net.minecraft.world.entity.EntitySpawnReason.COMMAND);
+                .create(level, new net.minecraft.world.entity.EntitySpawnRequest(net.minecraft.world.entity.EntitySpawnReason.COMMAND, true));
         if (entity == null) throw new IllegalArgumentException(type + " cannot be created in " + location.getWorld().getName());
         return new ClientEntity(entity, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
     }
