@@ -306,6 +306,19 @@ public final class NMSLib_V26_2 implements NMSHandler {
     }
 
     @Override
+    public void setCamera(Player viewer, int entityId) {
+        ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+        if (handle.connection != null) handle.connection.send(cameraPacket(entityId));
+    }
+
+    // The packet only has an Entity constructor, and the camera is usually a client-only entity.
+    static net.minecraft.network.protocol.game.ClientboundSetCameraPacket cameraPacket(int entityId) {
+        net.minecraft.network.FriendlyByteBuf buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer(5));
+        buffer.writeVarInt(entityId);
+        return net.minecraft.network.protocol.game.ClientboundSetCameraPacket.STREAM_CODEC.decode(buffer);
+    }
+
+    @Override
     public int spawnPacketHologram(Player player, Location location, String text) {
         if (player == null || location == null || location.getWorld() == null || text == null
                 || !player.isOnline() || player.getWorld() != location.getWorld()) {

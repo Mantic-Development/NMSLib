@@ -88,6 +88,16 @@ public interface NMSHandler {
     }
 
     /**
+     * Shows the viewer the view of the entity with this id, which must already be spawned for them (clients ignore unknown ids);
+     * the viewer's own entity id gives the view back. Meanwhile the client applies no movement input, sends no movement and picks
+     * blocks from the camera. Respawns and world changes give the view back on the client; removing the camera entity does not,
+     * the view freezes there. Server thread only. Throws UnsupportedOperationException when unsupported.
+     */
+    default void setCamera(Player viewer, int entityId) {
+        throw new UnsupportedOperationException("Camera packets are not supported on this server version");
+    }
+
+    /**
      * Changes a loaded block with client/lighting updates, without drops or events.
      * Callers must check protection and fire their own break event before calling.
      * Returns false when the chunk is unloaded or the block did not change.

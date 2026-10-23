@@ -5,15 +5,22 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PositionMoveRotation;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -21,11 +28,14 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 final class ClientEntity implements PacketEntity {
 
     private final Entity entity;
+    private final AttributeMap attributes;
     private final ClientboundRemoveEntitiesPacket remove;
+    private Vec3 sentMotion;
     private double x, y, z;
     private float yaw, pitch;
     private long sentX, sentY, sentZ;
@@ -33,7 +43,9 @@ final class ClientEntity implements PacketEntity {
 
     ClientEntity(Entity entity, double x, double y, double z, float yaw, float pitch) {
         this.entity = entity;
+        attributes = entity instanceof LivingEntity living ? living.getAttributes() : null;
         remove = new ClientboundRemoveEntitiesPacket(entity.getId());
+        sentMotion = entity.getDeltaMovement();
         setLocation(x, y, z, yaw, pitch);
         moved = false;
         sentX = encode(x);
@@ -82,6 +94,15 @@ final class ClientEntity implements PacketEntity {
     }
 
     @Override
+    public void playEvent(Collection<? extends Player> viewers, byte event) {
+        ClientboundEntityEventPacket packet = new ClientboundEntityEventPacket(entity, event);
+        for (Player viewer : viewers) {
+            ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+            if (handle.connection != null) handle.connection.send(packet);
+        }
+    }
+
+    @Override
     public void destroy(Collection<? extends Player> viewers) {
         for (Player viewer : viewers) {
             ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
@@ -94,7 +115,7 @@ final class ClientEntity implements PacketEntity {
         List<Packet<? super ClientGamePacketListener>> packets = null;
         for (PacketEntity entity : entities) {
             ClientEntity client = (ClientEntity) entity;
-            if (!client.moved && !client.entity.getEntityData().isDirty()) continue;
+            if (!client.changed()) continue;
             if (packets == null) packets = new ArrayList<>(entities.size() * 2);
             client.changes(packets);
         }
@@ -102,10 +123,16 @@ final class ClientEntity implements PacketEntity {
     }
 
     ClientboundBundlePacket spawnPacket() {
-        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(2);
-        packets.add(new ClientboundAddEntityPacket(entity.getId(), entity.getUUID(), x, y, z, pitch, yaw, entity.getType(), 0, Vec3.ZERO, yaw));
+        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(3);
+        // Like vanilla Projectile: the owner's id, which the client skips while the projectile leaves it.
+        int owner = entity instanceof Projectile projectile && projectile.getOwner() instanceof Entity shooter ? shooter.getId() : 0;
+        packets.add(new ClientboundAddEntityPacket(entity.getId(), entity.getUUID(), x, y, z, pitch, yaw, entity.getType(), owner, entity.getDeltaMovement(), yaw));
         List<SynchedEntityData.DataValue<?>> data = entity.getEntityData().getNonDefaultValues();
         if (data != null) packets.add(new ClientboundSetEntityDataPacket(entity.getId(), data));
+        if (attributes != null) {
+            Collection<AttributeInstance> syncable = attributes.getSyncableAttributes();
+            if (!syncable.isEmpty()) packets.add(new ClientboundUpdateAttributesPacket(entity.getId(), syncable));
+        }
         // Viewers who already have the entity hold the last flushed position, so a relative move would split them from this viewer.
         if (moved) resync = true;
         return new ClientboundBundlePacket(packets);
@@ -114,8 +141,25 @@ final class ClientEntity implements PacketEntity {
     void changes(List<Packet<? super ClientGamePacketListener>> out) {
         List<SynchedEntityData.DataValue<?>> data = entity.getEntityData().packDirty();
         if (data != null) out.add(new ClientboundSetEntityDataPacket(entity.getId(), data));
+        if (attributes != null) {
+            Set<AttributeInstance> dirty = attributes.getAttributesToSync();
+            if (!dirty.isEmpty()) {
+                out.add(new ClientboundUpdateAttributesPacket(entity.getId(), dirty));
+                dirty.clear();
+            }
+        }
+        Vec3 motion = entity.getDeltaMovement();
+        if (!motion.equals(sentMotion)) {
+            out.add(new ClientboundSetEntityMotionPacket(entity.getId(), motion));
+            sentMotion = motion;
+        }
         if (moved) out.add(movePacket());
         moved = false;
+    }
+
+    private boolean changed() {
+        return moved || entity.getEntityData().isDirty() || attributes != null && !attributes.getAttributesToSync().isEmpty()
+                || !entity.getDeltaMovement().equals(sentMotion);
     }
 
     private static void send(Collection<? extends Player> viewers, List<Packet<? super ClientGamePacketListener>> packets) {
