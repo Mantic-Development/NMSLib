@@ -5,6 +5,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundChangeDifficultyPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket;
@@ -15,12 +16,14 @@ import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PositionMoveRotation;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -123,10 +126,16 @@ final class ClientEntity implements PacketEntity {
     }
 
     ClientboundBundlePacket spawnPacket() {
-        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(3);
+        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(5);
+        // The client builds spawned entities through EntityType.create, which refuses monsters on peaceful, so the bundle lifts its difficulty around the
+        // spawn and puts the world's back; a created entity stays.
+        LevelData level = entity.getType().isAllowedInPeaceful() ? null : entity.level().getLevelData();
+        boolean peaceful = level != null && level.getDifficulty() == Difficulty.PEACEFUL;
+        if (peaceful) packets.add(new ClientboundChangeDifficultyPacket(Difficulty.EASY, level.isDifficultyLocked()));
         // Like vanilla Projectile: the owner's id, which the client skips while the projectile leaves it.
         int owner = entity instanceof Projectile projectile && projectile.getOwner() instanceof Entity shooter ? shooter.getId() : 0;
         packets.add(new ClientboundAddEntityPacket(entity.getId(), entity.getUUID(), x, y, z, pitch, yaw, entity.getType(), owner, entity.getDeltaMovement(), yaw));
+        if (peaceful) packets.add(new ClientboundChangeDifficultyPacket(Difficulty.PEACEFUL, level.isDifficultyLocked()));
         List<SynchedEntityData.DataValue<?>> data = entity.getEntityData().getNonDefaultValues();
         if (data != null) packets.add(new ClientboundSetEntityDataPacket(entity.getId(), data));
         if (attributes != null) {
