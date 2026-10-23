@@ -98,13 +98,13 @@
     <dependency>
       <groupId>ca.bkaw</groupId>
       <artifactId>paper-nms</artifactId>
-      <version>[26.2.build.1, 26.2.build.9999)</version>
+      <version>26.2.build.134-stable</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.papermc.paper</groupId>
       <artifactId>paper-api</artifactId>
-      <version>[26.2.build.1, 26.2.build.9999)</version>
+      <version>26.2.build.134-stable</version>
       <scope>provided</scope>
     </dependency>
     <dependency> <!-- https://github.com/Mojang/brigadier -->
