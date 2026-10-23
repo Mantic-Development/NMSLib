@@ -312,6 +312,16 @@ public final class NMSLib_V26_2 implements NMSHandler {
         if (handle.connection != null) handle.connection.send(cameraPacket(entityId));
     }
 
+    @Override
+    public void setClientGameMode(Player viewer, org.bukkit.GameMode mode) {
+        ServerPlayer handle = ((CraftPlayer) viewer).getHandle();
+        if (handle.connection == null) return;
+        net.minecraft.world.level.GameType type = mode == null ? handle.gameMode.getGameModeForPlayer() : net.minecraft.world.level.GameType.byId(mode.getValue());
+        handle.connection.send(new net.minecraft.network.protocol.game.ClientboundGameEventPacket(net.minecraft.network.protocol.game.ClientboundGameEventPacket.CHANGE_GAME_MODE, type.getId()));
+        // The client reset its abilities to the faked mode's; the server's (a granted flight, say) go back with the mode.
+        if (mode == null) handle.connection.send(new net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket(handle.getAbilities()));
+    }
+
     // The packet only has an Entity constructor, and the camera is usually a client-only entity.
     static net.minecraft.network.protocol.game.ClientboundSetCameraPacket cameraPacket(int entityId) {
         net.minecraft.network.FriendlyByteBuf buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer(5));

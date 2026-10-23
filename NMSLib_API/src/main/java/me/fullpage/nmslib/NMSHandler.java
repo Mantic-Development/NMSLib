@@ -7,6 +7,7 @@ import me.fullpage.nmslib.packet.PacketArmorStand;
 import me.fullpage.nmslib.packet.PacketEntity;
 import me.fullpage.nmslib.packet.PacketPlayer;
 import me.fullpage.nmslib.packet.UseItemOnListener;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -95,6 +96,15 @@ public interface NMSHandler {
      */
     default void setCamera(Player viewer, int entityId) {
         throw new UnsupportedOperationException("Camera packets are not supported on this server version");
+    }
+
+    /**
+     * Shows the viewer's client another game mode while the server keeps theirs, e.g. SPECTATOR during a camera shot: no hand, hotbar or bars, no gravity
+     * on the client. null puts the server's game mode and abilities back. Respawns and world changes also reset it. Server thread only.
+     * Throws UnsupportedOperationException when unsupported.
+     */
+    default void setClientGameMode(Player viewer, GameMode mode) {
+        throw new UnsupportedOperationException("Client game modes are not supported on this server version");
     }
 
     /**
