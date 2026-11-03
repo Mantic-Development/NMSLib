@@ -85,15 +85,15 @@ public final class NMSLib_V26_2 implements NMSHandler {
         net.minecraft.core.BlockPos position = nativeBlock.getPosition();
         net.minecraft.world.level.LevelAccessor level = nativeBlock.getLevel();
         if (!level.getMinecraftWorld().getChunkSource().isChunkLoaded(position.getX() >> 4, position.getZ() >> 4)) return false;
-        // Without physics: client and light updates only; no neighbour/shape updates, onPlace, block entity side effects or POI updates.
+        // Without physics: client, light and POI updates only (beds, job sites and portals stay registered, as with Bukkit's
+        // setBlockData(data, false)); no neighbour/shape updates, onPlace or block entity side effects.
         return level.setBlock(position, state, applyPhysics ? net.minecraft.world.level.block.Block.UPDATE_ALL : NO_PHYSICS_FLAGS);
     }
 
     private static final int NO_PHYSICS_FLAGS = net.minecraft.world.level.block.Block.UPDATE_CLIENTS
             | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE
             | net.minecraft.world.level.block.Block.UPDATE_SKIP_ON_PLACE
-            | net.minecraft.world.level.block.Block.UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS
-            | net.minecraft.world.level.block.Block.UPDATE_SKIP_POI;
+            | net.minecraft.world.level.block.Block.UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS;
 
     static net.minecraft.world.level.block.state.BlockState state(int stateId) {
         net.minecraft.world.level.block.state.BlockState state = net.minecraft.world.level.block.Block.BLOCK_STATE_REGISTRY.byId(stateId);
