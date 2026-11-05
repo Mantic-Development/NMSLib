@@ -4,6 +4,7 @@ import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
+import me.fullpage.nmslib.packet.BlockUpdateFilter;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.chat.ComponentSerializer;
@@ -41,6 +42,27 @@ import java.util.Collection;
 import java.util.HashMap;
 
 public final class NMSLib_V26_3 implements NMSHandler {
+
+    @Override
+    public AutoCloseable addBlockUpdateFilter(Plugin owner, BlockUpdateFilter filter) {
+        return PacketInjector.add(owner, filter);
+    }
+
+    @Override
+    public void removePacketListeners(Plugin owner) {
+        PacketInjector.remove(owner);
+    }
+
+    @Override
+    public int blockStateId(BlockData data) {
+        return net.minecraft.world.level.block.Block.getId(((org.bukkit.craftbukkit.block.data.CraftBlockData) data).getState());
+    }
+
+    @Override
+    public BlockData blockData(int stateId) {
+        return net.minecraft.world.level.block.Block.stateById(stateId).asBlockData();
+    }
+
 
     public NMSLib_V26_3() {
         //((CraftMagicNumbers) CraftMagicNumbers.INSTANCE).getMappingsVersion();

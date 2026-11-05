@@ -6,11 +6,7 @@ import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
 import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
-import me.fullpage.nmslib.packet.DigListener;
-import me.fullpage.nmslib.packet.PacketArmorStand;
-import me.fullpage.nmslib.packet.PacketEntity;
-import me.fullpage.nmslib.packet.PacketPlayer;
-import me.fullpage.nmslib.packet.UseItemOnListener;
+import me.fullpage.nmslib.packet.*;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
@@ -20,7 +16,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.projectile.FishingHook;
-import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -32,7 +27,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.craftbukkit.CraftWorld;
-import org.bukkit.craftbukkit.entity.CraftEnderPearl;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -50,12 +44,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public final class NMSLib_V26_2 implements NMSHandler {
 
@@ -114,6 +103,11 @@ public final class NMSLib_V26_2 implements NMSHandler {
     @Override
     public AutoCloseable addUseItemOnListener(Plugin owner, UseItemOnListener listener) {
         return PacketInjector.add(owner, listener);
+    }
+
+    @Override
+    public AutoCloseable addBlockUpdateFilter(Plugin owner, BlockUpdateFilter filter) {
+        return PacketInjector.add(owner, filter);
     }
 
     @Override

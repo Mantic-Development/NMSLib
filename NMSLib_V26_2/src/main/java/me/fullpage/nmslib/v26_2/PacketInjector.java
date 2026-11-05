@@ -1,25 +1,28 @@
 package me.fullpage.nmslib.v26_2;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.papermc.paper.network.ChannelInitializeListenerHolder;
 import io.papermc.paper.util.IntervalledCounter;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectLinkedOpenHashMap;
+import me.fullpage.nmslib.packet.BlockUpdateFilter;
 import me.fullpage.nmslib.packet.DigAction;
 import me.fullpage.nmslib.packet.DigListener;
 import me.fullpage.nmslib.packet.UseItemOnListener;
 import net.kyori.adventure.key.Key;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.HandlerNames;
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
+import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,6 +31,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 
@@ -39,6 +43,7 @@ final class PacketInjector {
 
     private static volatile Entry[] digs = NONE;
     private static volatile Entry[] uses = NONE;
+    private static volatile Entry[] filters = NONE;
     private static boolean installed; // server thread only
 
     private record Entry(Plugin owner, Object listener) {
@@ -53,6 +58,15 @@ final class PacketInjector {
 
     static AutoCloseable add(Plugin owner, UseItemOnListener listener) {
         return add(owner, listener, false);
+    }
+
+    static AutoCloseable add(Plugin owner, BlockUpdateFilter listener) {
+        Entry added = new Entry(Objects.requireNonNull(owner, "owner"), Objects.requireNonNull(listener, "listener"));
+        synchronized (PacketInjector.class) {
+            filters = with(filters, added);
+        }
+        install(owner);
+        return () -> remove(entry -> entry == added);
     }
 
     private static AutoCloseable add(Plugin owner, Object listener, boolean dig) {
@@ -75,6 +89,7 @@ final class PacketInjector {
         synchronized (PacketInjector.class) {
             digs = without(digs, match);
             uses = without(uses, match);
+            filters = without(filters, match);
         }
     }
 
@@ -126,11 +141,12 @@ final class PacketInjector {
         else pipeline.addBefore(HandlerNames.PACKET_HANDLER, HANDLER_NAME, new Handler(connection));
     }
 
-    private static final class Handler extends ChannelInboundHandlerAdapter {
+    private static final class Handler extends ChannelDuplexHandler {
 
         private final Connection connection;
         private IntervalledCounter dropped;
         private boolean flooding;
+        private boolean filterFailureLogged;
 
         Handler(Connection connection) {
             this.connection = connection;
@@ -142,6 +158,62 @@ final class PacketInjector {
             boolean drop = !flooding && (type == ServerboundPlayerActionPacket.class ? dig((ServerboundPlayerActionPacket) msg)
                     : type == ServerboundUseItemOnPacket.class && useItemOn((ServerboundUseItemOnPacket) msg));
             if (!drop || !countDrop()) ctx.fireChannelRead(msg);
+        }
+
+        private static Object rewriteSection(ClientboundSectionBlocksUpdatePacket packet, Entry[] current, UUID player, UUID world) {
+            Short2ObjectLinkedOpenHashMap<BlockState> replacements = new Short2ObjectLinkedOpenHashMap<>();
+            SectionPos[] section = new SectionPos[1];
+            packet.runUpdates((pos, state) -> {
+                BlockState replacement = replace(current, player, world, pos, state);
+                if (replacement != state) {
+                    if (section[0] == null) section[0] = SectionPos.of(pos);
+                    replacements.put(SectionPos.sectionRelativePos(pos), replacement);
+                }
+            });
+            if (section[0] == null) return packet;
+
+            Short2ObjectLinkedOpenHashMap<BlockState> states = new Short2ObjectLinkedOpenHashMap<>();
+            packet.runUpdates((pos, state) -> {
+                short relative = SectionPos.sectionRelativePos(pos);
+                states.put(relative, replacements.getOrDefault(relative, state));
+            });
+            return new ClientboundSectionBlocksUpdatePacket(section[0], states);
+        }
+
+        private static BlockState replace(Entry[] current, UUID player, UUID world, BlockPos pos, BlockState state) {
+            int original = Block.getId(state);
+            for (Entry entry : current) {
+                int id = ((BlockUpdateFilter) entry.listener).replace(player, world, pos.getX(), pos.getY(), pos.getZ(), original);
+                if (id >= 0 && id != original) return Block.stateById(id);
+            }
+            return state;
+        }
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+            Entry[] current = filters;
+            Object outgoing = msg;
+            if (current.length != 0 && (msg instanceof ClientboundBlockUpdatePacket
+                    || msg instanceof ClientboundSectionBlocksUpdatePacket)
+                    && connection.getPacketListener() instanceof ServerGamePacketListenerImpl listener) {
+                try {
+                    UUID player = listener.player.getUUID();
+                    UUID world = listener.player.level().getWorld().getUID();
+                    if (msg instanceof ClientboundBlockUpdatePacket packet) {
+                        BlockState state = replace(current, player, world, packet.getPos(), packet.getBlockState());
+                        if (state != packet.getBlockState())
+                            outgoing = new ClientboundBlockUpdatePacket(packet.getPos(), state);
+                    } else {
+                        outgoing = rewriteSection((ClientboundSectionBlocksUpdatePacket) msg, current, player, world);
+                    }
+                } catch (RuntimeException | LinkageError error) {
+                    if (!filterFailureLogged) {
+                        filterFailureLogged = true;
+                        current[0].owner.getLogger().log(Level.WARNING, "Could not filter an outbound block update", error);
+                    }
+                }
+            }
+            ctx.write(outgoing, promise);
         }
 
         // Dropped packets never reach Paper's limiter, so count them here; past the limit everything is forwarded and Paper kicks.

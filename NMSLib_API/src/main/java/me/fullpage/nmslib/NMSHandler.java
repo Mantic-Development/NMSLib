@@ -2,11 +2,7 @@ package me.fullpage.nmslib;
 
 import me.fullpage.nmslib.chunk.ChunkSource;
 import me.fullpage.nmslib.chunk.VirtualChunk;
-import me.fullpage.nmslib.packet.DigListener;
-import me.fullpage.nmslib.packet.PacketArmorStand;
-import me.fullpage.nmslib.packet.PacketEntity;
-import me.fullpage.nmslib.packet.PacketPlayer;
-import me.fullpage.nmslib.packet.UseItemOnListener;
+import me.fullpage.nmslib.packet.*;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -221,6 +217,13 @@ public interface NMSHandler {
     /** Registers a use-item-on listener; close the handle to remove just this listener. Throws UnsupportedOperationException when unsupported. */
     default AutoCloseable addUseItemOnListener(Plugin owner, UseItemOnListener listener) {
         throw new UnsupportedOperationException("Packet listeners are not supported on this server version");
+    }
+
+    /**
+     * Registers a filter for single and section block updates. Close the handle to remove it.
+     */
+    default AutoCloseable addBlockUpdateFilter(Plugin owner, BlockUpdateFilter filter) {
+        throw new UnsupportedOperationException("Block update filters are not supported on this server version");
     }
 
     /** Removes every packet listener registered by the plugin. */
