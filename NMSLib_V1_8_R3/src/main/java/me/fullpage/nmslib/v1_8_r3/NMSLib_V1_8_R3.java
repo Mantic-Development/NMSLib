@@ -2,6 +2,8 @@ package me.fullpage.nmslib.v1_8_r3;
 
 import me.fullpage.nmslib.EnchantInfo;
 import me.fullpage.nmslib.NMSHandler;
+import me.fullpage.nmslib.packet.BlockUpdateFilter;
+import me.fullpage.nmslib.packet.LegacyBlockUpdateSupport;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.CropState;
 import org.bukkit.Location;
@@ -11,7 +13,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.craftbukkit.v1_8_R3.enchantments.CraftEnchantment;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEnderPearl;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
@@ -21,7 +22,6 @@ import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +36,18 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 
-public final class NMSLib_V1_8_R3 implements NMSHandler {
+public final class NMSLib_V1_8_R3 implements NMSHandler, LegacyBlockUpdateSupport {
+
+    @Override
+    public AutoCloseable addBlockUpdateFilter(Plugin owner, BlockUpdateFilter filter) {
+        return new BlockUpdateInjector(owner, filter);
+    }
+
+    @Override
+    public int legacyBlockStateId(Material material, byte data) {
+        net.minecraft.server.v1_8_R3.Block block = net.minecraft.server.v1_8_R3.Block.getById(material.getId());
+        return block == null ? -1 : net.minecraft.server.v1_8_R3.Block.getCombinedId(block.fromLegacyData(data));
+    }
 
 
     @Override
